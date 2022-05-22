@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Autofy{% endblock %}
+
+{% block body %}
+  <!-- Header -->
+  <header class="flex-row" {% if profile_picture is defined %}style="justify-content: space-between"{% endif %}>
+    <h1>Autofy</h1>
+    {% if profile_picture is defined %}
+      <img src="{{profile_picture['url']}}" alt="User's Spotify profile picture" class="profile-picture">
+    {% endif %}
+  </header>
+
+  <!-- Main content -->
+  <main class="flex-column">
+    <!-- <p>Autofy creates a playlist with every song from all the artists you follow on Spotify</p> -->
+
+    {% if auth_url is defined %}
+      <span>Connect your Spotify account to get started</span>
+      <a href="{{auth_url}}" class="button">Connect account</a>
+    {% else %}
+
+      <!-- Create Mega Playlist card -->
+      <div id="create-mega-playlist-card"  class="card button flex-column" onclick="expandCard(event, 'create-mega-playlist-card')">
+
+        <h2>Create Mega Playlist!</h2>
+        <form action="#" id='create-mega-playlist-form' method="post" class="flex-column">
+          <p>Create a playlist with all the songs from every artist that you follow</p>
+
+          <!-- Choose Track Order -->
+          <h3>Sort tracks...</h3>
+          <div class="button-group">
+              <input type="radio" id="alphabetical" name="sort-tracks" value="alphabetically" class="never-show">
+              <label for="alphabetical" class="button">alphabetically</label>
+
+              <input type="radio" id="artist" name="sort-tracks" value="by-artist" class="never-show">
+              <label for="artist" class="button">by artist</label>
+
+              <input type="radio" id="old-to-new" name="sort-tracks" value="old-to-new" class="never-show">
+              <label for="old-to-new" class="button">oldest to newest</label>
+
+              <input type="radio" id="new-to-old" name="sort-tracks" value="new-to-old" class="never-show">
+              <label for="new-to-old" class="button">newest to oldest</label>
+          </div>
+
+
+          <!-- Automatically Update Playlist -->
+          <!-- <h3>Automatically update...</h3>
+          <div class="button-group">
+            <input type="checkbox" id="when-artist-posts" name="update-playlist" value="when-artist-posts" class="never-show">
+            <label for="when-artist-posts" class="button">when artists release new music</label>
+
+            <input type="checkbox" id="when-i-follow-artist" name="update-playlist" value="when-i-follow-artist" class="never-show">
+            <label for="when-i-follow-artist" class="button">when I follow artist</label>
+
+            <input type="checkbox" id="when-i-unfollow-artist" name="update-playlist" value="when-i-unfollow-artist" class="never-show">
+            <label for="when-i-unfollow-artist" class="button">when I unfollow artist</label>
+          </div> -->
+          
+
+          <div class="button-group" style="margin-top: 50px">
+            <button type="button" class="button" onclick="closeCard(event, 'create-mega-playlist-card')">Cancel</button>
+            <input type="submit" value="Create Playlist" class="button" onclick="submitForm(event, 'create-mega-playlist-card')">
+          </div>
+        </form>
+      </div>
+
+
+      <!-- Choose Artists card -->
+      <!-- <div id="create-specific-artist-card" class="card" onclick="expandCard(event, 'create-specific-artist-card')">
+      
+        <h2>Create Playlist from Select Artists!</h2>
+        <form action="#" method="post" class="flex-column"> -->
+    
+          <!-- Choose Track Order -->
+          <!-- <h3>Choose track order</h3>
+          <div class="button-group">
+            <input type="radio" id="alphabetical" name="choose-track-order" value="alphabetically" class="never-show">
+            <label for="alphabetical" class="button">alphabetical</label>
+    
+            <input type="radio" id="release-date" name="choose-track-order" value="release-date" class="never-show">
+            <label for="release-date" class="button">release-date</label>
+    
+            <input type="radio" id="artist" name="choose-track-order" value="artist" class="never-show">
+            <label for="artist" class="button">artist</label>
+    
+            <input type="radio" id="popularity" name="choose-track-order" value="popularity" class="never-show">
+            <label for="popularity" class="button">popularity</label>
+          </div> -->
+    
+    
+          <!-- Automatically Update Playlist -->
+          <!-- <h3>Automatically update...</h3>
+          <div class="button-group">
+            <input type="checkbox" id="when-artist-posts" name="when-artist-posts" value="when-artist-posts"
+              class="never-show">
+            <label for="when-artist-posts" class="button">when-artist-posts</label>
+    
+            <input type="checkbox" id="when-i-follow-artist" name="when-i-follow-artist" value="when-i-follow-artist"
+              class="never-show">
+            <label for="when-i-follow-artist" class="button">when-i-follow-artist</label>
+          </div>
+    
+    
+          <div class="flex-row">
+            <button type="button" class="button" onclick="closeCard(event, 'create-specific-artist-card')">Cancel</button>
+            <input type="submit" value="Submit" class="button">
+          </div>
+        </form>
+      </div> --> 
+
+      <div class="loader"></div>
+    {% endif %}
+  </main>
+
+  {% if playlist_ids is defined %}
+    <div id="my-playlists" class="flex-column">
+      <h2>My Playlists</h2>
+      <div class="flex-row">
+        {% for id in playlist_ids %}
+          <iframe id="mega-playlist" class="playlist" src="https://open.spotify.com/embed/playlist/{{id}}?utm_source=generator">
+          </iframe>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if auth_url is not defined %}
+    <footer class="flex-row">
+      <a href="/sign_out" class="button">Sign Out</a>
+    </footer>
+  {% endif %}
+
+  {% if auth_url is not defined %}
+    <script src="{{ url_for('static', filename='js/card-functions.js') }}"></script>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,7 @@
+Flask~=2.0.2
+flask_session~=0.4.0
+gunicorn~=20.1.0
+redis~=4.1.4
+dnspython~=2.2.0
+pymongo~=4.0.1
+spotipy~=2.19.0
