@@ -1,0 +1,9 @@
+<header class="row" {% if profile_picture is defined %}style="justify-content: space-between"{% endif %}>
+
+  <h1>autofy</h1>
+
+  {% if profile_picture is defined %}
+    <img src="{{profile_picture['url']}}" alt="Spotify profile picture" class="profile-picture" width=100 height=100>
+  {% endif %}
+
+</header>

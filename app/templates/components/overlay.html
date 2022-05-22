@@ -1,0 +1,69 @@
+<div id="create-playlist-overlay" class="overlay" onclick="hideOverlay()" hidden>
+  <form id="create-playlist-form" class="body" action="#" method="post" onclick="event.stopPropagation()">
+
+    <h2 class="header">Create Mega Playlist!</h2>
+
+    <div class="main column" style="gap: 3rem;">
+      <ul class="column">
+        <li>Creates a playlist from every artist you follow</li>
+        <li>Updates when artists post new tracks</li>
+        <li>Automatically stays up to date with the artists that you follow</li>
+      </ul>
+
+      <div id="advanced-options" class="column" style="gap: 4rem;" hidden>
+        <!-- Select artists... -->
+        <fieldset>
+          <legend>Select Artists...</legend>
+
+          <div id="choose-artists" class="column">
+            <input type="checkbox" name="artists" id="followed-artists" value="followed-artists" checked hidden>
+            <label for="followed-artists" class="button">followed artists</label>
+
+            <button type="button" class="add-button" onclick="addArtist(this)">+</button>
+          </div>
+        </fieldset>
+
+        <!-- Sort tracks... -->
+        <fieldset>
+          <legend>Sort tracks...</legend>
+          <div class="row">
+              <input type="radio" name="sort-tracks" id="alphabetical" value="alphabetically" hidden>
+              <label for="alphabetical" class="button">alphabetically</label>
+
+              <input type="radio" name="sort-tracks" id="artist" value="by-artist" hidden>
+              <label for="artist" class="button">by artist</label>
+
+              <input type="radio" name="sort-tracks" id="old-to-new" value="old-to-new" hidden>
+              <label for="old-to-new" class="button">oldest to newest</label>
+
+              <input type="radio" name="sort-tracks" id="new-to-old" value="new-to-old" hidden>
+              <label for="new-to-old" class="button">newest to oldest</label>
+          </div>
+        </fieldset>
+
+        <!-- Automatically update... -->
+        <fieldset>
+          <legend>Automatically update...</legend>
+          <div class="row">
+            <input type="checkbox" name="update-playlist" id="when-artist-posts" value="when-artist-posts" hidden>
+            <label for="when-artist-posts" class="button">when artists release new music</label>
+
+            <input type="checkbox" name="update-playlist" id="when-i-follow-artist" value="when-i-follow-artist" hidden>
+            <label for="when-i-follow-artist" class="button">when I follow artist</label>
+
+            <input type="checkbox" name="update-playlist" id="when-i-unfollow-artist" value="when-i-unfollow-artist" hidden>
+            <label for="when-i-unfollow-artist" class="button">when I unfollow artist</label>
+          </div>
+        </fieldset>
+      </div>
+
+      <button type="button" id="advanced-options-button" class="button secondary" onclick="toggleAdvancedOptions(event)">+ advanced</button>
+    </div>
+
+    <div class="footer row" style="justify-content: space-between;">
+      <button type="reset" class="button" onclick="hideOverlay()">Cancel</button>
+      <input type="submit" value="Create Playlist" class="button accent" onclick="submitForm(event)">
+    </div>
+
+  </form>
+</div>
