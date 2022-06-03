@@ -19,219 +19,152 @@ app.config['SESSION_FILE_DIR'] = './.flask_session-test/'
 Session(app)
 
 
-NO_INTERNET = False
-if NO_INTERNET:
-    @app.route('/')
-    def index(): return render_template('index.html', name='TEST')
+# users: {
+#   session_id
+# }
+
+# playlists: {
+#   userId
+#   playlistIds: []
+#   updatedAt
+#   settings: {}
+# }
+
+# Mega Playlist Settings {
+#   type
+#   sortingOrder
+#   updateWhen: []?
+# }
 
 
-    @app.route('/search-for-artist', methods=['GET'])
-    def search_for_artist():
-        # Return list of id's, names, and profile picture urls
-        if request.args.get('artist') == 'ta':
-            return jsonify({
-                'id': '06HL4z0CvFAxyc27GXpf02',
-                'name': 'Taylor Swift',
-                'profilePicture': 'https://i.scdn.co/image/ab6761610000e5eb9e3acf1eaf3b8846e836f441'
-            })
+# Set up Redis
+url = urlparse(os.environ.get("REDIS_TLS_URL"))
+r = redis.Redis(host=url.hostname, port=url.port, username=url.username, password=url.password, ssl=True, ssl_cert_reqs=None)
 
-        if request.args.get('artist') == 'alm':
-            return jsonify({
-                'id': 'test',
-                'name': 'almost found',
-                'profilePicture': 'https://i.scdn.co/image/ab6761610000e5eb9e3acf1eaf3b8846e836f441'
-            })
-        else: return jsonify({})
+# Set up Mongo
+mongo = pymongo.MongoClient(os.environ.get('MONGO_URL'))
+db = mongo.autofy
+playlists_coll = db.playlists
 
 
-    @app.route('/create-playlist', methods=['POST'])
-    def create_playlist():
-        # Create playlist
-        form_data = request.form
-        for key, value in form_data.items():
-            print(key, ':', value)
+@app.route('/')
+def index():
+    # Setup
+    # If visitor is unknown, give random ID
+    if not session.get('uuid'):
+        session['uuid'] = str(uuid.uuid4())
 
+    # Spotify auth
+    cache_handler = RedisCacheHandler(r, session.get('uuid'))
+    auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-follow-read playlist-read-private playlist-modify-private', cache_handler=cache_handler, show_dialog=True)
 
-        print(form_data.getlist('update-playlist'))
-        print(form_data.getlist('artists'))
-
-        return {'playlist_id': 'test-id'}
-
-
-else:
-
-    # users: {
-    #   session_id
-    # }
-
-    # playlists: {
-    #   userId
-    #   playlistIds: []
-    #   updatedAt
-    #   settings: {}
-    # }
-
-    # Mega Playlist Settings {
-    #   type
-    #   sortingOrder
-    #   updateWhen: []?
-    # }
-
-
-    # Set up Redis
-    url = urlparse(os.environ.get("REDIS_TLS_URL"))
-    r = redis.Redis(host=url.hostname, port=url.port, username=url.username, password=url.password, ssl=True, ssl_cert_reqs=None)
-
-    # Set up Mongo
-    mongo = pymongo.MongoClient(os.environ.get('MONGO_URL'))
-    db = mongo.autofy
-    playlists_coll = db.playlists
-
-
-    @app.route('/')
-    def index():
-        # Setup
-        # If visitor is unknown, give random ID
-        if not session.get('uuid'):
-            session['uuid'] = str(uuid.uuid4())
-
-        # Spotify auth
-        cache_handler = RedisCacheHandler(r, session.get('uuid'))
-        auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-follow-read playlist-read-private playlist-modify-private', cache_handler=cache_handler, show_dialog=True)
-
-        # If redirected from Spotify auth, add access token
-        if request.args.get('code'):
-            auth_manager.get_access_token(request.args.get('code'))
-            return redirect(url_for('index'))
-
-
-        # If not logged in, show sign in page
-        if not auth_manager.validate_token(cache_handler.get_cached_token()):
-            auth_url = auth_manager.get_authorize_url()
-            return render_template('sign-in.html', auth_url=auth_url)
-
-
-
-
-
-
-        # If logged in, show home page
-        spotify = spotipy.Spotify(auth_manager=auth_manager)
-        check_if_playlists_deleted(spotify)
-
-
-        if (profile_picture := spotify.current_user()['images'][0]) is not None:
-            return render_template('index.html',
-                                   name=spotify.current_user()['display_name'],
-                                   profile_picture=profile_picture,
-                                   playlist_ids=get_playlist_ids(spotify.current_user()['id']))
-
-        else:
-            return render_template('index.html', name=spotify.current_user()['display_name'], playlist_ids=get_playlist_ids(spotify))
-
-
-
-    @ app.route('/sign_out')
-    def sign_out():
-        r.delete(session.get('uuid'))
-        session.clear()
+    # If redirected from Spotify auth, add access token
+    if request.args.get('code'):
+        auth_manager.get_access_token(request.args.get('code'))
         return redirect(url_for('index'))
 
 
+    # If not logged in, show sign in page
+    if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        auth_url = auth_manager.get_authorize_url()
+        return render_template('sign-in.html', auth_url=auth_url)
 
 
 
 
-    @app.route('/create-playlist', methods=['POST'])
-    def create_mega_playlist():
-        # Create playlist
-        form_data = request.form
-        for key, value in form_data.items():
-            print(key, ':', value)
-
-        print(form_data.getlist('update'))
-
-        cache_handler = RedisCacheHandler(r, session.get('uuid'))
-        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
-        if not auth_manager.validate_token(cache_handler.get_cached_token()):
-            return redirect(url_for('index'))
-
-        spotify = spotipy.Spotify(auth_manager=auth_manager)
 
 
+    # If logged in, show home page
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+    check_if_playlists_deleted(spotify)
 
-        # Create playlist
-        new_playlist = {
-            'userId': spotify.current_user()['id'],
-            'playlistIds': create_playlist(spotify, sort_tracks=form_data['sort-tracks']), #, update=form_data.getlist('update')),
-            'settings': {
-                'sort_tracks': form_data['sort-tracks']
-            }
+
+    if (profile_picture := spotify.current_user()['images'][0]) is not None:
+        return render_template('index.html',
+                               name=spotify.current_user()['display_name'],
+                               profile_picture=profile_picture,
+                               playlist_ids=get_playlist_ids(spotify.current_user()['id']))
+
+    else:
+        return render_template('index.html', name=spotify.current_user()['display_name'], playlist_ids=get_playlist_ids(spotify))
+
+
+
+@ app.route('/sign_out')
+def sign_out():
+    r.delete(session.get('uuid'))
+    session.clear()
+    return redirect(url_for('index'))
+
+
+
+
+
+
+@app.route('/create-playlist', methods=['POST'])
+def create_mega_playlist():
+    # Create playlist
+    form_data = request.form
+    for key, value in form_data.items():
+        print(key, ':', value)
+
+    print(form_data.getlist('update'))
+
+    cache_handler = RedisCacheHandler(r, session.get('uuid'))
+    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+    if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        return redirect(url_for('index'))
+
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+
+
+
+    # Create playlist
+    new_playlist = {
+        'userId': spotify.current_user()['id'],
+        'playlistIds': create_playlist(spotify, sort_tracks=form_data['sort-tracks']), #, update=form_data.getlist('update')),
+        'settings': {
+            'sort_tracks': form_data['sort-tracks']
         }
+    }
 
-        # Add to database
-        playlists_coll.insert_one(new_playlist)
+    # Add to database
+    playlists_coll.insert_one(new_playlist)
 
-        return { 'playlist_id': new_playlist['playlist_id'] }
-
-
-
-
-    def get_playlist_ids(user_id):
-        # Get all playlists with user id
-        playlist_ids = []
-        for playlist in playlists_coll.find({'user_id': user_id}):
-            playlist_ids.append(playlist['playlist_id'])
-
-        return playlist_ids
-
-
-    def check_if_playlists_deleted(spotify):
-        playlist_ids = get_playlist_ids(spotify.current_user()['id'])
-        playlists = []
-
-        offset = 0
-        while True:
-            results = list(map(lambda res: res['id'], spotify.current_user_playlists(offset=offset)['items']))
-
-            if len(results) == 0: break
-
-            playlists.extend(results)
-            offset = offset + 50
+    return { 'playlist_id': new_playlist['playlist_id'] }
 
 
 
 
-        for id in playlist_ids:
-            # If playlist not on spotify, remove from database
-            if id not in playlists:
-                playlists_coll.delete_many({'playlist_id': id})
+def get_playlist_ids(user_id):
+    # Get all playlists with user id
+    playlist_ids = []
+    for playlist in playlists_coll.find({'user_id': user_id}):
+        playlist_ids.append(playlist['playlist_id'])
+
+    return playlist_ids
 
 
-    @app.route('/search-for-artist', methods=['GET'])
-    def search_for_artist():
-        cache_handler = RedisCacheHandler(r, session.get('uuid'))
-        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
-        if not auth_manager.validate_token(cache_handler.get_cached_token()):
-            return redirect(url_for('index'))
+def check_if_playlists_deleted(spotify):
+    playlist_ids = get_playlist_ids(spotify.current_user()['id'])
+    playlists = []
 
-        spotify = spotipy.Spotify(auth_manager=auth_manager)
+    offset = 0
+    while True:
+        results = list(map(lambda res: res['id'], spotify.current_user_playlists(offset=offset)['items']))
 
-        q = request.args.get('artist')
-        artist = None
-        if q != '':
-            result = spotify.search(request.args.get('artist'), limit=1, offset=0, type='artist', market=None)['artists']['items']
-            if len(result) > 0: artist = result[0]
+        if len(results) == 0: break
 
-        if artist is not None:
-            return jsonify({
-                'id': artist['id'],
-                'name': artist['name'],
-                'profilePicture': artist['images'][0]['url']
-            })
+        playlists.extend(results)
+        offset = offset + 50
 
-        else: return jsonify({})
 
+
+
+    for id in playlist_ids:
+        # If playlist not on spotify, remove from database
+        if id not in playlists:
+            playlists_coll.delete_many({'playlist_id': id})
 
 
 
