@@ -1,13 +1,14 @@
+from datetime import datetime
 import os
 from urllib.parse import urlparse
-from flask import Flask, session, request, redirect, url_for, render_template, jsonify
+from flask import Flask, session, request, redirect, url_for, render_template, jsonify, abort
 from flask_session import Session
 import pymongo
 import spotipy
 import uuid
 import redis
 
-from app.playlist import create_playlist
+from app.playlist import generate_playlist, update_playlist
 from app.redis_cache_handler import RedisCacheHandler
 
 
@@ -76,17 +77,18 @@ def index():
 
     # If logged in, show home page
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    check_if_playlists_deleted(spotify)
+    user_id = spotify.current_user()['id']
+    # check_if_playlists_deleted(spotify)
 
 
     if (profile_picture := spotify.current_user()['images'][0]) is not None:
         return render_template('index.html',
                                name=spotify.current_user()['display_name'],
                                profile_picture=profile_picture,
-                               playlist_ids=get_playlist_ids(spotify.current_user()['id']))
+                               playlist_ids=get_playlist_ids(user_id))
 
     else:
-        return render_template('index.html', name=spotify.current_user()['display_name'], playlist_ids=get_playlist_ids(spotify))
+        return render_template('index.html', name=spotify.current_user()['display_name'], playlist_ids=get_playlist_ids(user_id))
 
 
 
@@ -102,7 +104,7 @@ def sign_out():
 
 
 @app.route('/create-playlist', methods=['POST'])
-def create_mega_playlist():
+def create_playlist():
     # Create playlist
     form_data = request.form
     for key, value in form_data.items():
@@ -118,20 +120,13 @@ def create_mega_playlist():
     spotify = spotipy.Spotify(auth_manager=auth_manager)
 
 
-
     # Create playlist
-    new_playlist = {
-        'userId': spotify.current_user()['id'],
-        'playlistIds': create_playlist(spotify, sort_tracks=form_data['sort-tracks']), #, update=form_data.getlist('update')),
-        'settings': {
-            'sort_tracks': form_data['sort-tracks']
-        }
-    }
+    new_playlist = generate_playlist(spotify)
 
     # Add to database
     playlists_coll.insert_one(new_playlist)
 
-    return { 'playlist_id': new_playlist['playlist_id'] }
+    return { 'playlistIds': new_playlist['playlistIds'] }
 
 
 
@@ -139,10 +134,42 @@ def create_mega_playlist():
 def get_playlist_ids(user_id):
     # Get all playlists with user id
     playlist_ids = []
-    for playlist in playlists_coll.find({'user_id': user_id}):
-        playlist_ids.append(playlist['playlist_id'])
+    for playlist in playlists_coll.find({'userId': user_id}):
+        playlist_ids.extend(playlist['playlistIds'])
 
     return playlist_ids
+
+
+@app.route('/update-playlists', methods=['GET'])
+def update_playlists():
+    # Setup
+    # If visitor is unknown, give random ID
+    if not session.get('uuid'):
+        session['uuid'] = str(uuid.uuid4())
+
+    # Spotify auth
+    cache_handler = RedisCacheHandler(r, session.get('uuid'))
+    auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-follow-read playlist-read-private playlist-modify-private',
+                                               cache_handler=cache_handler, show_dialog=True)
+
+    # If redirected from Spotify auth, add access token
+    if request.args.get('code'):
+        auth_manager.get_access_token(request.args.get('code'))
+        return redirect(url_for('index'))
+
+    # If not logged in, show sign in page
+    if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        abort(403)
+
+    # If logged in, show home page
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+    user_id = spotify.current_user()['id']
+
+    for playlist in playlists_coll.find({'userId': user_id}):
+        update_playlist(playlist, spotify)
+
+    return jsonify({'success': True})
+
 
 
 def check_if_playlists_deleted(spotify):

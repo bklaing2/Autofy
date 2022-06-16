@@ -31,9 +31,21 @@ function addPlaylist(requestData) {
 
   // Wait for playlist response
   request.onload = function () {
-    playlistId = request.response.playlist_id
-    playlist.src = 'https://open.spotify.com/embed/playlist/' + playlistId + '?utm_source=generator'
-    playlist.classList.remove('loading')
+    playlistIds = request.response.playlistIds
+
+    for (var i = 0; i < playlistIds.length; i++) {
+      if (i > 0) {
+        playlist = document.createElement('iframe')
+        playlist.classList.add('playlist')
+        playlist.classList.add('loading')
+
+        playlists = document.getElementById('my-playlists')
+        playlists.appendChild(playlist)
+      }
+
+      playlist.src = 'https://open.spotify.com/embed/playlist/' + playlistIds[i] + '?utm_source=generator'
+      playlist.classList.remove('loading')
+    }
   }
 }
 
