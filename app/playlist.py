@@ -7,6 +7,66 @@ from spotipy.oauth2 import SpotifyOAuth
 MAX_LENGTH = 10000
 
 
+class Playlist:
+
+    def __init__(self, spotify, playlist={}):
+        self.spotify = spotify
+
+        self.user_id = spotify.current_user()['id']
+        self.playlist_ids = playlist['playlistIds'] if 'playlistIds' in playlist else None
+        self.artists = playlist['artists'] if 'artists' in playlist else None
+
+
+    def generate(self):
+        # Get all artists, albums, and tracks
+        artists = get_followed_artists(self.spotify)
+        all_tracks = get_tracks_by_artists(artists[3:4])
+
+        ids = []
+        count = 0
+        while count * MAX_LENGTH < len(all_tracks):
+
+            # Limit playlist size to 10,000
+            start = count * MAX_LENGTH
+            end = count * MAX_LENGTH + MAX_LENGTH
+            tracks = all_tracks[start:end]
+
+            # Create new playlist and add tracks
+            playlist = self.spotify.user_playlist_create(
+                self.user_id,
+                f"Everything - {f'({count})' if count > 0 else ''}" + datetime.now().strftime('%m/%d/%Y'),
+                public=False,
+                collaborative=False,
+                description='Created on ' + datetime.now().strftime('%m/%d/%Y, %H:%M:%S') + ' by autofy')
+
+            track_ids = list(map(lambda track: track['uri'], tracks))
+            offset = 0
+            while offset + 50 < len(track_ids):
+                self.spotify.playlist_add_items(playlist_id=playlist['id'], items=track_ids[offset:offset + 50])
+                offset = offset + 50
+
+            if len(track_ids) > 0:
+                self.spotify.playlist_add_items(playlist_id=playlist['id'], items=track_ids[offset:])
+
+            ids.append(playlist['id'])
+
+            count += 1
+
+        # return {
+        #     'userId': self.user_id,
+        #     'playlistIds': ids,
+        #     'artists': list(map(lambda artist: artist['id'], artists)),
+        #     'updatedAt': datetime.now()
+        # }
+
+    def get_object(self):
+        return {
+            'userId': self.user_id,
+            'playlistIds': self.playlist_ids,
+            'artists': self.artists
+        }
+
+
 
 def get_ids(l):
     return list(map(lambda i: i['uri'], l))
@@ -82,12 +142,60 @@ def update_playlist(playlist, spotify):
     pass
 
 
-def add_tracks_to_playlist(playlist, spotify):
-    playlist_ids = playlist['playlistIds']
-    i = 0
+def add_tracks_to_playlist(tracks, playlist, spotify):
+    playlist_ids = playlist['playlistIds'].reverse()
 
-    tracks_in_playlist = spotify.playlist(playlist_id=playlist_ids[0])['tracks']['total']
-    print(tracks_in_playlist)
+    while len(tracks) > 0:
+
+        # Get next available playlist, or create a new one
+        if len(playlist_ids) > 0:
+            playlist_capacity = MAX_LENGTH - spotify.playlist(playlist_id=playlist_ids.pop())['tracks']['total']
+        else:
+            count = len(playlist['playlistIds'])
+            playlist = spotify.user_playlist_create(
+                spotify.me()['id'],
+                f"Everything - {f'({count})' if count > 0 else ''}" + datetime.now().strftime('%m/%d/%Y'),
+                public=False,
+                collaborative=False,
+                description='Created on ' + datetime.now().strftime('%m/%d/%Y, %H:%M:%S') + ' by autofy')
+
+            playlist_capacity = MAX_LENGTH
+            playlist['playlistIds'].append(playlist['id'])
+
+
+        # Add tracks to playlist
+        track_ids = list(map(lambda track: track['uri'], tracks[:playlist_capacity]))
+
+        while track_ids:
+            spotify.playlist_add_items(playlist_id=playlist['id'], items=track_ids[:50])
+            track_ids = track_ids[50:]
+
+
+
+        # Remove added tracks from list
+        tracks = tracks[playlist_capacity:]
+
+
+    return playlist
+
+
+def remove_tracks_from_playlist(tracks, playlist, spotify):
+    track_ids = list(map(lambda track: track['uri'], tracks))
+
+    for playlist_id in playlist['playlistIds']:
+        # Get all tracks for playlist
+        # Get the unions of those tracks and tracks to delete
+        # Delete the tracks
+        while track_ids:
+            spotify.playlist_add_items(playlist_id=playlist['id'], items=track_ids[:50])
+            track_ids = track_ids[50:]
+
+
+        # If playlist is empty, delete playlist
+        if spotify.playlist(playlist_id=playlist_id)['tracks']['total'] <= 0:
+            # TODO: Delete playlist from spotify
+            playlist['playlistIds'].remove(playlist_id)
+
     pass
 
 

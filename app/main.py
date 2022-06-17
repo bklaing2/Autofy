@@ -8,7 +8,7 @@ import spotipy
 import uuid
 import redis
 
-from app.playlist import generate_playlist, update_playlist
+from app.playlist import Playlist, generate_playlist, update_playlist
 from app.redis_cache_handler import RedisCacheHandler
 
 
@@ -121,12 +121,13 @@ def create_playlist():
 
 
     # Create playlist
-    new_playlist = generate_playlist(spotify)
+    new_playlist = Playlist(spotify)
+    new_playlist.generate()
 
     # Add to database
-    playlists_coll.insert_one(new_playlist)
+    playlists_coll.insert_one(new_playlist.get_object())
 
-    return { 'playlistIds': new_playlist['playlistIds'] }
+    return { 'playlistIds': new_playlist.get_object()['playlistIds'] }
 
 
 
