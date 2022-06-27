@@ -1,9 +1,9 @@
-from datetime import datetime
 import os
 from urllib.parse import urlparse
 from flask import Flask, session, request, redirect, url_for, render_template, jsonify, abort
 from flask_session import Session
-import pymongo
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 import spotipy
 import uuid
 import redis
@@ -43,7 +43,7 @@ url = urlparse(os.environ.get("REDIS_TLS_URL"))
 r = redis.Redis(host=url.hostname, port=url.port, username=url.username, password=url.password, ssl=True, ssl_cert_reqs=None)
 
 # Set up Mongo
-mongo = pymongo.MongoClient(os.environ.get('MONGO_URL'))
+mongo = MongoClient(os.environ.get('MONGO_URL'))
 db = mongo.autofy
 playlists_coll = db.playlists
 
@@ -142,7 +142,7 @@ def get_playlist_ids(user_id):
     return playlist_ids
 
 
-@app.route('/update-playlists', methods=['GET'])
+@app.route('/update-playlists', methods=['PUT'])
 def update_playlists():
     # Setup
     # If visitor is unknown, give random ID
@@ -172,6 +172,24 @@ def update_playlists():
         new_playlist.update()
 
     return jsonify({'success': True})
+
+@app.route('/update-playlist/<playlist_id>', methods=['GET'])
+def update_playlist(playlist_id):
+    cache_handler = RedisCacheHandler(r, session.get('uuid'))
+    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+    if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        return redirect(url_for('index'))
+
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+
+    playlist_obj = playlists_coll.find_one({'_id': ObjectId(playlist_id)})
+    playlist = Playlist(spotify, playlist_obj)
+    playlist.update()
+
+    # Add to database
+    playlists_coll.update_one({'_id': ObjectId(playlist_id)}, { '$set': playlist.get_json() })
+
+    return playlist_id
 
 
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 
 # Maximum playlist size allowed by Spotify
@@ -18,33 +18,50 @@ class Playlist:
 
 
     def generate(self):
-        # Get all artists, albums, and tracks
-        self.artist_ids = self.get_followed_artist_ids()
-        track_ids = self.get_track_ids_by_artist_ids(self.artist_ids[4:5])
+        print('Generating playlist...\n')
 
+
+        # Get all tracks from followed artists and add to new playlist
+        print('Getting followed artists...')
+        self.artist_ids = self.get_followed_artist_ids()
+        print(f'{len(self.artist_ids)} artists\n')
+
+        print('Getting track ids...')
+        track_ids = self.get_track_ids_by_artist_ids(self.artist_ids)
+        print(f'{len(track_ids)} tracks\n')
+
+        print('Adding tracks...\n')
         self.add_tracks(track_ids)
+
+
+        self.updated_at = datetime.now()
+        print('Playlists generated!')
+        print(self.playlist_ids)
 
 
     def update(self):
         followed_artist_ids = self.get_followed_artist_ids()
 
-        # Get unfollowed artists since last update
+        # Get unfollowed and followed artists since last update
         unfollowed_since = list(set(self.artist_ids) - set(followed_artist_ids))
-        if unfollowed_since:
-            tracks = self.get_track_ids_by_artist_ids(unfollowed_since)
-            self.remove_tracks(tracks)
-
-
-        # Get followed artists since last update
         followed_since = list(set(followed_artist_ids) - set(self.artist_ids))
-        if followed_since:
-            tracks = self.self.get_track_ids_by_artist_ids(followed_since)
-            self.add_tracks(tracks)
 
 
-        self.artist_ids = self.get_followed_artist_ids()
+        # Remove tracks by unfollowed artists
+        tracks = self.get_track_ids_by_artist_ids(unfollowed_since)
+        self.remove_tracks(tracks)
+
+        # Add tracks by followed artists
+        tracks = self.get_track_ids_by_artist_ids(followed_since)
+        self.add_tracks(tracks)
+
+        # Add tracks released since playlist was last updated
+        tracks = self.get_track_ids_uploaded_since_last_updated(self.artist_ids)
+        self.add_tracks(tracks)
+
+
+        self.artist_ids = followed_artist_ids
         self.updated_at = datetime.now()
-
 
 
 
@@ -54,15 +71,15 @@ class Playlist:
 
         while len(track_ids) > 0:
 
-            # Get next available playlist capacity
+            # Get next available playlist's capacity
             if i < len(self.playlist_ids):
                 playlist_capacity = MAX_LENGTH - self.spotify.playlist(playlist_id=self.playlist_ids[i])['tracks']['total']
 
-            # Or create a new one
+            # Or create a new playlist
             else:
                 playlist = self.spotify.user_playlist_create(
                     self.user_id,
-                    f"Everything - {f'({i})' if i > 0 else ''}" + datetime.now().strftime('%m/%d/%Y'),
+                    f"Everything - {datetime.now().strftime('%m/%d/%Y')}{f' ({i+1})' if i > 0 else ''}",
                     public=False,
                     collaborative=False,
                     description='Created on ' + datetime.now().strftime('%m/%d/%Y, %H:%M:%S') + ' by autofy')
@@ -75,6 +92,7 @@ class Playlist:
             tracks_to_add = track_ids[:playlist_capacity]
             track_ids = track_ids[playlist_capacity:]
 
+            # Add tracks to playlist
             while tracks_to_add:
                 self.spotify.playlist_add_items(playlist_id=self.playlist_ids[i], items=tracks_to_add[:50])
                 tracks_to_add = tracks_to_add[50:]
@@ -83,25 +101,38 @@ class Playlist:
 
 
     def remove_tracks(self, track_ids):
+        # Iterate through each playlist and remove tracks
         for playlist_id in self.playlist_ids:
-            self.spotify.playlist_remove_all_occurrences_of_items(playlist_id=playlist_id, items=track_ids)
+            i = 0
+            while i < len(track_ids):
+                self.spotify.playlist_remove_all_occurrences_of_items(playlist_id=playlist_id, items=track_ids[i:i+100])
 
-            if self.spotify.playlist(playlist_id=playlist_id)['tracks']['total'] == 0:
-                self.playlist_ids.remove(playlist_id)
+                if self.spotify.playlist(playlist_id=playlist_id)['tracks']['total'] == 0:
+                    self.playlist_ids.remove(playlist_id)
+                    self.spotify.current_user_unfollow_playlist(playlist_id)
+                    break
+
+                i += 100
 
 
 
 
+    # Return values as a dictionary
     def get_json(self):
         return {
             'userId': self.user_id,
             'playlistIds': self.playlist_ids,
-            'artists': self.artist_ids
+            'artists': self.artist_ids,
+            'updatedAt': self.updated_at
         }
 
 
 
+
+
+
     # Helper functions
+
 
     def get_followed_artist_ids(self):
         artists = []
@@ -119,20 +150,7 @@ class Playlist:
 
 
 
-    def get_track_ids_by_artist_ids(self, artist_ids):
-        album_ids = []
-        for artist_id in artist_ids:
-            album_ids.extend(self.get_album_ids_by_artist_id(artist_id))
-
-        track_ids = []
-        for album_ids in album_ids:
-            track_ids.extend(self.get_track_ids_by_album_id(album_ids))
-        print(len(track_ids), 'tracks')
-
-        return track_ids
-
-
-    def get_album_ids_by_artist_id(self, artist_id):
+    def get_albums_by_artist_id(self, artist_id):
         albums = []
         offset = 0
 
@@ -146,7 +164,7 @@ class Playlist:
 
             if len(results) == 0: break
 
-            albums.extend(get_ids(results))
+            albums.extend(results)
             offset = offset + 20
 
         return albums
@@ -166,6 +184,44 @@ class Playlist:
         return tracks
 
 
+    def get_track_ids_by_artist_ids(self, artist_ids):
+        album_ids = []
+        for artist_id in artist_ids:
+            albums = self.get_albums_by_artist_id(artist_id)
+            album_ids.extend(get_ids(albums))
+
+        track_ids = []
+        for album_id in album_ids:
+            track_ids.extend(self.get_track_ids_by_album_id(album_id))
+
+        return track_ids
+
+
+    def get_track_ids_uploaded_since_last_updated(self, artist_ids):
+        if not self.updated_at: return []
+
+        album_ids = []
+        for artist_id in artist_ids:
+            albums = self.get_albums_by_artist_id(artist_id)
+            albums = list(filter(self.released_since_last_updated, albums))
+            album_ids.extend(get_ids(albums))
+
+        track_ids = []
+        for album_id in album_ids:
+            track_ids.extend(self.get_track_ids_by_album_id(album_id))
+
+        return track_ids
+
+
+
+
+    def released_since_last_updated(self, item):
+        try: release_date = datetime.strptime(item['release_date'], '%Y-%m-%d')
+        except ValueError: release_date = datetime.strptime(item['release_date'], '%Y')
+        return release_date > self.updated_at
+
+
+
 
 
 
@@ -173,7 +229,7 @@ class Playlist:
 
 
 def get_ids(arr):
-    return list(map(lambda i: i['uri'], arr))
+    return list(map(lambda i: i['id'], arr))
 
 
 
