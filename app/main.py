@@ -125,9 +125,11 @@ def create_playlist():
     new_playlist.generate()
 
     # Add to database
-    playlists_coll.insert_one(new_playlist.get_object())
+    obj = new_playlist.get_object()
+    obj['updatedAt'] = datetime.now()
+    playlists_coll.insert_one(obj)
 
-    return { 'playlistIds': new_playlist.get_object()['playlistIds'] }
+    return { 'playlistIds': obj['playlistIds'] }
 
 
 

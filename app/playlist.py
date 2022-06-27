@@ -19,8 +19,8 @@ class Playlist:
 
     def generate(self):
         # Get all artists, albums, and tracks
-        artists = get_followed_artists(self.spotify)
-        all_tracks = get_tracks_by_artists(artists[3:4])
+        artists = self.get_followed_artists()
+        all_tracks = self.get_tracks_by_artists(artists[3:4])
 
         ids = []
         count = 0
@@ -59,12 +59,105 @@ class Playlist:
         #     'updatedAt': datetime.now()
         # }
 
+    def get_followed_artists(self):
+        artists = []
+        prev_artist = None
+
+        while True:
+            results = self.spotify.current_user_followed_artists(after=prev_artist)['artists']['items']
+
+            if len(results) == 0: break
+
+            artists.extend(results)
+            prev_artist = results[-1]['id']
+
+        return artists
+
+
+
+    def get_tracks_by_artists(self, artist_ids):
+        albums = []
+        for artist_id in artist_ids:
+            albums.extend(self.get_albums(artist_id))
+        print_names(albums)
+
+        tracks = []
+        for album in albums:
+            tracks.extend(self.get_tracks(album['id']))
+        print()
+        print(len(tracks), 'tracks')
+
+        return tracks
+
+
+    def get_albums(self, artist_id):
+        albums = []
+        offset = 0
+
+        while True:
+            results = self.spotify.artist_albums(
+                artist_id,
+                album_type='album',
+                country='US',
+                offset=offset
+            )['items']
+
+            if len(results) == 0: break
+
+            albums.extend(results)
+            offset = offset + 20
+
+        return albums
+
+
+    def get_tracks(self, album_id):
+        tracks = []
+        offset = 0
+        while True:
+            results = self.spotify.album_tracks(album_id, offset=offset)['items']
+
+            if len(results) == 0: break
+
+            tracks.extend(results)
+            offset = offset + 50
+
+        return tracks
+
+
+
+
     def get_object(self):
         return {
             'userId': self.user_id,
             'playlistIds': self.playlist_ids,
             'artists': self.artists
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -391,20 +484,20 @@ def print_names(arr):
 
 
 
-def get_followed_artists(spotify):
-    artists = []
-    prev_artist = None
-
-
-    while True:
-        results = spotify.current_user_followed_artists(after=prev_artist)['artists']['items']
-
-        if len(results) == 0: break
-
-        artists.extend(results)
-        prev_artist = results[-1]['id']
-
-    return artists
+# def get_followed_artists(spotify):
+#     artists = []
+#     prev_artist = None
+#
+#
+#     while True:
+#         results = spotify.current_user_followed_artists(after=prev_artist)['artists']['items']
+#
+#         if len(results) == 0: break
+#
+#         artists.extend(results)
+#         prev_artist = results[-1]['id']
+#
+#     return artists
 
 
 
