@@ -78,7 +78,6 @@ def index():
     # If logged in, show home page
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     user_id = spotify.current_user()['id']
-    # check_if_playlists_deleted(spotify)
 
 
     if (profile_picture := spotify.current_user()['images'][0]) is not None:
@@ -142,7 +141,7 @@ def get_playlist_ids(user_id):
     return playlist_ids
 
 
-@app.route('/update-playlists', methods=['PUT'])
+@app.route('/update-playlists', methods=['GET'])
 def update_playlists():
     print('Updating all playlists...')
     for playlist_obj in playlists_coll.find({ 'token': { '$exists': True }}):
@@ -157,53 +156,36 @@ def update_playlists():
 
 
         playlist = Playlist(spotify, playlist_obj)
-        playlist.update()
-
-        # Add to database
-        playlists_coll.update_one({'_id': ObjectId(playlist_obj['_id'])}, {'$set': playlist.get_json()})
+        if playlist.has_deleted():
+            playlist.delete_all()
+            playlists_coll.delete_one({'_id': ObjectId(playlist_obj['_id'])})
+        else:
+            playlist.update()
+            playlists_coll.update_one({'_id': ObjectId(playlist_obj['_id'])}, {'$set': playlist.get_json()})
 
     return jsonify({'success': True})
 
-@app.route('/update-playlist/<playlist_id>', methods=['PUT'])
+@app.route('/update-playlist/<playlist_id>', methods=['GET'])
 def update_playlist(playlist_id):
-    cache_handler = RedisCacheHandler(r, session.get('uuid'))
+    playlist_obj = playlists_coll.find_one({'_id': ObjectId(playlist_id)})
+
+    cache_handler = MemoryCacheHandler(token_info=playlist_obj['token'])
     auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
     if not auth_manager.validate_token(cache_handler.get_cached_token()):
-        return redirect(url_for('index'))
+        return jsonify({'success': False})
 
     spotify = spotipy.Spotify(auth_manager=auth_manager)
 
-    playlist_obj = playlists_coll.find_one({'_id': ObjectId(playlist_id)})
     playlist = Playlist(spotify, playlist_obj)
-    playlist.update()
 
-    # Add to database
-    playlists_coll.update_one({'_id': ObjectId(playlist_id)}, { '$set': playlist.get_json() })
+    if playlist.has_deleted():
+        playlist.delete_all()
+        playlists_coll.delete_one({'_id': ObjectId(playlist_id)})
+    else:
+        playlist.update()
+        playlists_coll.update_one({'_id': ObjectId(playlist_id)}, { '$set': playlist.get_json() })
 
     return jsonify({'success': True})
-
-
-
-def check_if_playlists_deleted(spotify):
-    playlist_ids = get_playlist_ids(spotify.current_user()['id'])
-    playlists = []
-
-    offset = 0
-    while True:
-        results = list(map(lambda res: res['id'], spotify.current_user_playlists(offset=offset)['items']))
-
-        if len(results) == 0: break
-
-        playlists.extend(results)
-        offset = offset + 50
-
-
-
-
-    for id in playlist_ids:
-        # If playlist not on spotify, remove from database
-        if id not in playlists:
-            playlists_coll.delete_many({'playlist_id': id})
 
 
 

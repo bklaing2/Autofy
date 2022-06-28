@@ -116,6 +116,27 @@ class Playlist:
 
 
 
+    def has_deleted(self):
+        for playlist_id in self.playlist_ids:
+            result = self.spotify.playlist_is_following(playlist_id, [self.user_id])[0]
+            if not result:
+                return True
+
+
+        return False
+
+
+    def delete_all(self):
+        print('Deleting playlist...')
+        for playlist_id in self.playlist_ids:
+            self.spotify.current_user_unfollow_playlist(playlist_id)
+
+        self.playlist_ids = []
+
+        print('Finished deleting playlist')
+
+
+
 
     # Return values as a dictionary
     def get_json(self):
