@@ -1,8 +1,32 @@
 import json
-import spotipy
+from spotipy import CacheHandler
 from redis import RedisError
 
-class RedisCacheHandler(spotipy.CacheHandler):
+
+class MemoryCacheHandler(CacheHandler):
+    """
+    A cache handler that simply stores the token info in memory as an
+    instance attribute of this class. The token info will be lost when this
+    instance is freed.
+    """
+
+    def __init__(self, token_info=None):
+        """
+        Parameters:
+            * token_info: The token info to store in memory. Can be None.
+        """
+        self.token_info = token_info
+
+    def get_cached_token(self):
+        return self.token_info
+
+    def save_token_to_cache(self, token_info):
+        self.token_info = token_info
+
+
+
+
+class RedisCacheHandler(CacheHandler):
     """
     A cache handler that stores the token info in the Redis.
     """

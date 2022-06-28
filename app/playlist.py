@@ -16,30 +16,26 @@ class Playlist:
 
         self.updated_at = playlist['updatedAt'] if 'updatedAt' in playlist else None
 
+        self.token = spotify.auth_manager.get_cached_token()
+
 
     def generate(self):
         print('Generating playlist...\n')
 
 
         # Get all tracks from followed artists and add to new playlist
-        print('Getting followed artists...')
         self.artist_ids = self.get_followed_artist_ids()
-        print(f'{len(self.artist_ids)} artists\n')
-
-        print('Getting track ids...')
         track_ids = self.get_track_ids_by_artist_ids(self.artist_ids)
-        print(f'{len(track_ids)} tracks\n')
-
-        print('Adding tracks...\n')
         self.add_tracks(track_ids)
 
 
         self.updated_at = datetime.now()
-        print('Playlists generated!')
+        print('Finished generating playlist')
         print(self.playlist_ids)
 
 
     def update(self):
+        print('Updating playlist...\n')
         followed_artist_ids = self.get_followed_artist_ids()
 
         # Get unfollowed and followed artists since last update
@@ -56,17 +52,19 @@ class Playlist:
         self.add_tracks(tracks)
 
         # Add tracks released since playlist was last updated
-        tracks = self.get_track_ids_uploaded_since_last_updated(self.artist_ids)
+        tracks = self.get_track_ids_released_since_last_updated(self.artist_ids)
         self.add_tracks(tracks)
 
 
         self.artist_ids = followed_artist_ids
         self.updated_at = datetime.now()
+        print('Finished updating playlist')
 
 
 
 
     def add_tracks(self, track_ids):
+        print(f'Adding {len(track_ids)} tracks...\n')
         i = 0
 
         while len(track_ids) > 0:
@@ -101,6 +99,8 @@ class Playlist:
 
 
     def remove_tracks(self, track_ids):
+        print(f'Remove {len(track_ids)} tracks...\n')
+
         # Iterate through each playlist and remove tracks
         for playlist_id in self.playlist_ids:
             i = 0
@@ -123,7 +123,8 @@ class Playlist:
             'userId': self.user_id,
             'playlistIds': self.playlist_ids,
             'artists': self.artist_ids,
-            'updatedAt': self.updated_at
+            'updatedAt': self.updated_at,
+            'token': self.token
         }
 
 
@@ -135,6 +136,7 @@ class Playlist:
 
 
     def get_followed_artist_ids(self):
+        print('Getting followed artists...')
         artists = []
         prev_artist = None
 
@@ -146,6 +148,7 @@ class Playlist:
             artists.extend(get_ids(results))
             prev_artist = artist_ids[-1]
 
+        print(f'{len(artists)} artists\n')
         return artists
 
 
@@ -185,6 +188,7 @@ class Playlist:
 
 
     def get_track_ids_by_artist_ids(self, artist_ids):
+        print('Getting track ids...')
         album_ids = []
         for artist_id in artist_ids:
             albums = self.get_albums_by_artist_id(artist_id)
@@ -194,10 +198,12 @@ class Playlist:
         for album_id in album_ids:
             track_ids.extend(self.get_track_ids_by_album_id(album_id))
 
+        print(f'{len(track_ids)} tracks\n')
         return track_ids
 
 
-    def get_track_ids_uploaded_since_last_updated(self, artist_ids):
+    def get_track_ids_released_since_last_updated(self, artist_ids):
+        print('Getting tracks released since playlist last updated')
         if not self.updated_at: return []
 
         album_ids = []

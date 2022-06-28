@@ -8,8 +8,8 @@ import spotipy
 import uuid
 import redis
 
-from app.playlist import Playlist # , generate_playlist, update_playlist
-from app.redis_cache_handler import RedisCacheHandler
+from app.playlist import Playlist
+from app.cache_handlers import MemoryCacheHandler, RedisCacheHandler
 
 
 # Set up server
@@ -144,36 +144,27 @@ def get_playlist_ids(user_id):
 
 @app.route('/update-playlists', methods=['PUT'])
 def update_playlists():
-    # Setup
-    # If visitor is unknown, give random ID
-    if not session.get('uuid'):
-        session['uuid'] = str(uuid.uuid4())
+    print('Updating all playlists...')
+    for playlist_obj in playlists_coll.find({ 'token': { '$exists': True }}):
+        print(playlist_obj['_id'])
 
-    # Spotify auth
-    cache_handler = RedisCacheHandler(r, session.get('uuid'))
-    auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-follow-read playlist-read-private playlist-modify-private',
-                                               cache_handler=cache_handler, show_dialog=True)
+        cache_handler = MemoryCacheHandler(token_info=playlist_obj['token'])
+        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+        if not auth_manager.validate_token(cache_handler.get_cached_token()):
+            return jsonify({'success': False})
 
-    # If redirected from Spotify auth, add access token
-    if request.args.get('code'):
-        auth_manager.get_access_token(request.args.get('code'))
-        return redirect(url_for('index'))
+        spotify = spotipy.Spotify(auth_manager=auth_manager)
 
-    # If not logged in, show sign in page
-    if not auth_manager.validate_token(cache_handler.get_cached_token()):
-        abort(403)
 
-    # If logged in, show home page
-    spotify = spotipy.Spotify(auth_manager=auth_manager)
-    user_id = spotify.current_user()['id']
+        playlist = Playlist(spotify, playlist_obj)
+        playlist.update()
 
-    for playlist in playlists_coll.find({'userId': user_id}):
-        new_playlist = Playlist(spotify, playlist)
-        new_playlist.update()
+        # Add to database
+        playlists_coll.update_one({'_id': ObjectId(playlist_obj['_id'])}, {'$set': playlist.get_json()})
 
     return jsonify({'success': True})
 
-@app.route('/update-playlist/<playlist_id>', methods=['GET'])
+@app.route('/update-playlist/<playlist_id>', methods=['PUT'])
 def update_playlist(playlist_id):
     cache_handler = RedisCacheHandler(r, session.get('uuid'))
     auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
@@ -189,7 +180,7 @@ def update_playlist(playlist_id):
     # Add to database
     playlists_coll.update_one({'_id': ObjectId(playlist_id)}, { '$set': playlist.get_json() })
 
-    return playlist_id
+    return jsonify({'success': True})
 
 
 
