@@ -19,6 +19,6 @@ playlists_coll = db.playlists
 # Add all playlists to worker queues
 print('Updating all playlists...')
 for obj in playlists_coll.find({ 'token': { '$exists': True }}):
-    q.enqueue(update_playlist, obj)
+    q.enqueue(update_playlist, obj, job_timeout=600) # 10 mins
 
 print('Finished updating playlists')

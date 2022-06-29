@@ -108,7 +108,7 @@ def sign_out():
 
 @app.route('/create-playlist', methods=['POST'])
 def create_playlist():
-    q.enqueue(create_playlist_helper, session.get('uuid'))
+    q.enqueue(create_playlist_helper, session.get('uuid'), job_timeout=1800) # 30 mins
     return { 'status': 'started' }
 
 def create_playlist_helper(session_uuid):
