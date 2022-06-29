@@ -84,14 +84,14 @@ def index():
     user_id = spotify.current_user()['id']
 
 
-    if (profile_picture := spotify.current_user()['images'][0]) is not None:
-        return render_template('index.html',
-                               name=spotify.current_user()['display_name'],
-                               profile_picture=profile_picture,
-                               playlist_ids=get_playlist_ids(user_id))
+    # if (profile_picture := spotify.current_user()['images'][0]) is not None:
+    #     return render_template('index.html',
+    #                            name=spotify.current_user()['display_name'],
+    #                            profile_picture=profile_picture,
+    #                            playlist_ids=get_playlist_ids(user_id))
 
-    else:
-        return render_template('index.html', name=spotify.current_user()['display_name'], playlist_ids=get_playlist_ids(user_id))
+    # else:
+    return render_template('index.html', name=spotify.current_user()['display_name'], playlist_ids=get_playlist_ids(user_id))
 
 
 
