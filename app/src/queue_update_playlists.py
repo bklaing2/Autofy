@@ -6,6 +6,11 @@ from app.src.update_playlist import update_playlist
 from app.src.worker import conn
 
 
+# Ping server to wake up dynos
+os.system("curl https://auto-fy.herokuapp.com/")
+
+
+# Set up queue
 q = Queue(connection=conn)
 
 
