@@ -1,2 +1,2 @@
 web: gunicorn wsgi:app
-worker: python src/worker.py
+worker: python app/src/worker.py
