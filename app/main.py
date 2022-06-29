@@ -1,15 +1,17 @@
 import os
+import uuid
 from urllib.parse import urlparse
 from flask import Flask, session, request, redirect, url_for, render_template, jsonify
 from flask_session import Session
+import redis
+from rq import Queue
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 import spotipy
-import uuid
-import redis
 
 from app.src.playlist import Playlist
 from app.src.cache_handlers import MemoryCacheHandler, RedisCacheHandler
+from app.src.worker import conn
 
 
 # Set up server
@@ -39,8 +41,10 @@ Session(app)
 
 
 # Set up Redis
-url = urlparse(os.environ.get("REDIS_TLS_URL"))
+url = urlparse(os.environ.get('REDIS_TLS_URL'))
 r = redis.Redis(host=url.hostname, port=url.port, username=url.username, password=url.password, ssl=True, ssl_cert_reqs=None)
+
+q = Queue(connection=conn)
 
 # Set up Mongo
 mongo = MongoClient(os.environ.get('MONGO_URL'))
@@ -104,20 +108,16 @@ def sign_out():
 
 @app.route('/create-playlist', methods=['POST'])
 def create_playlist():
-    # Create playlist
-    form_data = request.form
-    for key, value in form_data.items():
-        print(key, ':', value)
+    q.enqueue(create_playlist_helper, session.get('uuid'))
+    return { 'status': 'started' }
 
-    print(form_data.getlist('update'))
-
-    cache_handler = RedisCacheHandler(r, session.get('uuid'))
+def create_playlist_helper(session_uuid):
+    cache_handler = RedisCacheHandler(r, session_uuid)
     auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
     if not auth_manager.validate_token(cache_handler.get_cached_token()):
         return redirect(url_for('index'))
 
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-
 
     # Create playlist
     new_playlist = Playlist(spotify)
@@ -150,7 +150,7 @@ def update_playlists():
         cache_handler = MemoryCacheHandler(token_info=playlist_obj['token'])
         auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
-            print("Error with token")
+            print('Error with token')
             continue
 
         spotify = spotipy.Spotify(auth_manager=auth_manager)
