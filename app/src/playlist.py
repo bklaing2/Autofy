@@ -51,9 +51,10 @@ class Playlist:
         tracks = self.get_track_ids_by_artist_ids(followed_since)
         self.add_tracks(tracks)
 
-        # Add tracks released since playlist was last updated
-        tracks = self.get_track_ids_released_since_last_updated(self.artist_ids)
-        self.add_tracks(tracks)
+        # Add tracks released since playlist was last updated, if last update time isn't today
+        if self.updated_at.date() < datetime.today().date():
+            tracks = self.get_track_ids_released_since_last_updated(self.artist_ids)
+            self.add_tracks(tracks)
 
 
         self.artist_ids = followed_artist_ids
