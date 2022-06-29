@@ -1,6 +1,6 @@
 import os
 from urllib.parse import urlparse
-from flask import Flask, session, request, redirect, url_for, render_template, jsonify, abort
+from flask import Flask, session, request, redirect, url_for, render_template, jsonify
 from flask_session import Session
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -8,8 +8,8 @@ import spotipy
 import uuid
 import redis
 
-from app.playlist import Playlist
-from app.cache_handlers import MemoryCacheHandler, RedisCacheHandler
+from app.src.playlist import Playlist
+from app.src.cache_handlers import MemoryCacheHandler, RedisCacheHandler
 
 
 # Set up server
@@ -150,7 +150,8 @@ def update_playlists():
         cache_handler = MemoryCacheHandler(token_info=playlist_obj['token'])
         auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
-            return jsonify({'success': False})
+            print("Error with token")
+            continue
 
         spotify = spotipy.Spotify(auth_manager=auth_manager)
 
