@@ -9,15 +9,12 @@
       <button class="add-button" onclick="showOverlay()">+</button>
     </div>
 
-    <div id="my-playlists" class="row">
-      {% for id in playlist_ids %}
-        <iframe class="playlist"
-          src="https://open.spotify.com/embed/playlist/{{id}}?utm_source=generator">
-        </iframe>
-      {% endfor %}
-    </div>
+    <div id="my-playlists" class="row"></div>
 
   </main>
 
   {% include 'components/overlay.html' %}
+
+  
+  <script src="{{ url_for('static', filename='js/getPlaylists.js') }}"></script>
 {% endblock %}

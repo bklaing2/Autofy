@@ -124,14 +124,22 @@ def create_playlist_helper(session_uuid):
 
 
 
+@app.route('/get-playlists', methods=['GET'])
+def get_playlists():
+    cache_handler = RedisCacheHandler(r, session.get('uuid'))
+    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+    if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        return redirect(url_for('index'))
 
-def get_playlist_ids(user_id):
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+
     # Get all playlists with user id
-    playlist_ids = []
-    for playlist in playlists_coll.find({'userId': user_id}):
-        playlist_ids.extend(playlist['playlistIds'])
+    playlists = []
+    for playlist in playlists_coll.find({'userId': spotify.current_user()['id']}):
+        playlists.append(playlist['playlistIds'])
 
-    return playlist_ids
+
+    return jsonify({ 'playlists': playlists })
 
 
 @app.route('/update-playlists', methods=['GET'])
