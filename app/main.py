@@ -84,10 +84,7 @@ def index():
     user = spotify.current_user()
     profile_picture = user['images'][0] if 'images' in user and len(user['images']) > 0 else None
 
-    return render_template('index.html',
-                           name=user['display_name'],
-                           profile_picture=profile_picture,
-                           playlist_ids=get_playlist_ids(user['id']))
+    return render_template('index.html', name=user['display_name'], profile_picture=profile_picture)
 
 
 
