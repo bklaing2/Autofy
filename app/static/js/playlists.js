@@ -32,7 +32,7 @@ function getPlaylists() {
       if (parent_element === null) {
         parent_element = document.createElement('div')
         parent_element.id = playlist.id
-        parent_element.classList.add('playlist')
+        parent_element.classList.add('playlist_container')
         parent_element.classList.add('loading')
 
         PLAYLISTS_CONTAINER.appendChild(parent_element)
