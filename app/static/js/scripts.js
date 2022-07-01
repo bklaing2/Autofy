@@ -9,45 +9,6 @@ function submitForm(event) {
 }
 
 
-function addPlaylist(requestData) {
-  // Create new playlist element
-  playlist = document.createElement('iframe')
-  playlist.classList.add('playlist')
-  playlist.classList.add('loading')
-
-  playlists = document.getElementById('my-playlists')
-  playlists.appendChild(playlist)
-
-
-  // Set up request to create playlist
-  request = new XMLHttpRequest()
-  request.responseType = 'json'
-  
-  request.open("POST", "/create-playlist", true)
-  request.send(requestData)
-
-  console.log(requestData)
-
-
-  // Wait for playlist response
-  request.onload = function () {
-    playlistIds = request.response.playlistIds
-
-    for (var i = 0; i < playlistIds.length; i++) {
-      if (i > 0) {
-        playlist = document.createElement('iframe')
-        playlist.classList.add('playlist')
-        playlist.classList.add('loading')
-
-        playlists = document.getElementById('my-playlists')
-        playlists.appendChild(playlist)
-      }
-
-      playlist.src = 'https://open.spotify.com/embed/playlist/' + playlistIds[i] + '?utm_source=generator'
-      playlist.classList.remove('loading')
-    }
-  }
-}
 
 
 function searchArtists(input) {

@@ -140,15 +140,22 @@ class Playlist:
 
 
     # Return values as a dictionary
-    def get_json(self):
-        return {
-            'userId': self.user_id,
-            'playlistIds': self.playlist_ids,
-            'artists': self.artist_ids,
-            'updatedAt': self.updated_at,
-            'token': self.token
-        }
+    def get_json(self, new=False):
+        if new:
+            return {
+                'userId': self.user_id,
+                'playlistIds': 'generating',
+                'token': self.token
+            }
 
+        else:
+            return {
+                'userId': self.user_id,
+                'playlistIds': self.playlist_ids,
+                'artists': self.artist_ids,
+                'updatedAt': self.updated_at,
+                'token': self.token
+            }
 
 
 

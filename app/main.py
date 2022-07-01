@@ -101,14 +101,26 @@ def sign_out():
 
 @app.route('/create-playlist', methods=['POST'])
 def create_playlist():
-    q.enqueue(create_playlist_helper, session.get('uuid'), job_timeout=1800) # 30 mins
-    return { 'status': 'started' }
-
-def create_playlist_helper(session_uuid):
-    cache_handler = RedisCacheHandler(r, session_uuid)
+    cache_handler = RedisCacheHandler(r, session.get('uuid'))
     auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
     if not auth_manager.validate_token(cache_handler.get_cached_token()):
         return redirect(url_for('index'))
+
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+
+    # Add default document
+    new_id = playlists_coll.insert_one(Playlist(spotify).get_json(new=True)).inserted_id
+
+    q.enqueue(create_playlist_helper, new_id, job_timeout=1800) # 30 mins
+    return { 'playlist': { 'id': str(new_id), 'spotifyPlaylists': 'generating' } }
+
+def create_playlist_helper(playlist_id):
+    playlist_obj = playlists_coll.find_one({'_id': ObjectId(playlist_id)})
+
+    cache_handler = MemoryCacheHandler(token_info=playlist_obj['token'])
+    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+    if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        return jsonify({'success': False})
 
     spotify = spotipy.Spotify(auth_manager=auth_manager)
 
@@ -116,11 +128,8 @@ def create_playlist_helper(session_uuid):
     new_playlist = Playlist(spotify)
     new_playlist.generate()
 
-    # Add to database
-    obj = new_playlist.get_json()
-    playlists_coll.insert_one(obj)
-
-    return { 'playlistIds': obj['playlistIds'] }
+    # Update in database
+    playlists_coll.update_one({'_id': ObjectId(playlist_obj['_id'])}, {'$set': new_playlist.get_json()})
 
 
 
@@ -136,7 +145,10 @@ def get_playlists():
     # Get all playlists with user id
     playlists = []
     for playlist in playlists_coll.find({'userId': spotify.current_user()['id']}):
-        playlists.append(playlist['playlistIds'])
+        playlists.append({
+            'id': str(playlist['_id']),
+            'spotifyPlaylists': playlist['playlistIds']
+        })
 
 
     return jsonify({ 'playlists': playlists })
