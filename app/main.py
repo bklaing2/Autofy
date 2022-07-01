@@ -91,7 +91,7 @@ def index():
 
 
 
-@ app.route('/sign_out')
+@app.route('/sign_out')
 def sign_out():
     r.delete(session.get('uuid'))
     session.clear()
