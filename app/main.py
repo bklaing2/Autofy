@@ -81,17 +81,13 @@ def index():
 
     # If logged in, show home page
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    user_id = spotify.current_user()['id']
+    user = spotify.current_user()
+    profile_picture = user['images'][0] if 'images' in user and len(user['images']) > 0 else None
 
-
-    # if (profile_picture := spotify.current_user()['images'][0]) is not None:
-    #     return render_template('index.html',
-    #                            name=spotify.current_user()['display_name'],
-    #                            profile_picture=profile_picture,
-    #                            playlist_ids=get_playlist_ids(user_id))
-
-    # else:
-    return render_template('index.html', name=spotify.current_user()['display_name'], playlist_ids=get_playlist_ids(user_id))
+    return render_template('index.html',
+                           name=user['display_name'],
+                           profile_picture=profile_picture,
+                           playlist_ids=get_playlist_ids(user['id']))
 
 
 
