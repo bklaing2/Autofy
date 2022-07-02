@@ -1,5 +1,26 @@
-{% if auth_url is not defined %}
-  <footer class="row">
-    <a href="/sign_out" class="button">Sign Out</a>
-  </footer>
-{% endif %}
+<footer class="row">
+  <a href="https://github.com/bklaing2/autofy" class="button secondary">GitHub</a>
+
+  <a href="https://www.buymeacoffee.com/autofy" class="button secondary" target="_blank">Support the Site</a>
+  <script
+          data-name="BMC-Widget"
+          data-cfasync="false"
+          src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
+          data-id="autofy"
+          data-description="Support me on Buy me a coffee!"
+          data-message="If you want to show support and keep this site ad-free, click here!"
+          data-color="#4ECCA3"
+          data-position="Right"
+          data-x_margin="18"
+          data-y_margin="18"></script>
+
+  <button class="button secondary" onclick="showOverlay('email-overlay')">Contact</button>
+
+  {% if auth_url is not defined %}
+    <a href="/sign_out" class="button secondary">Sign Out</a>
+  {% endif %}
+
+</footer>
+
+
+{% include 'components/emailOverlay.html' %}

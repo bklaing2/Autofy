@@ -1,4 +1,4 @@
-<div id="create-playlist-overlay" class="overlay" onclick="hideOverlay()" hidden>
+<div id="create-playlist-overlay" class="overlay" onclick="hideOverlay('create-playlist-overlay')" hidden>
   <form id="create-playlist-form" class="body" action="#" method="post" onclick="event.stopPropagation()">
 
     <h2 class="header">Create Mega Playlist!</h2>
@@ -12,7 +12,7 @@
     </div>
 
     <div class="footer row" style="justify-content: space-between;">
-      <button type="reset" class="button" onclick="hideOverlay()">Cancel</button>
+      <button type="reset" class="button" onclick="hideOverlay('create-playlist-overlay')">Cancel</button>
       <input type="submit" value="Create Playlist" class="button accent" onclick="submitForm(event)">
     </div>
 

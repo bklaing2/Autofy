@@ -5,7 +5,7 @@ function submitForm(event) {
   form = document.getElementById('create-playlist-form')
   addPlaylist(new FormData(form))
 
-  hideOverlay()
+  hideOverlay('create-playlist-overlay')
 }
 
 
@@ -36,13 +36,13 @@ function searchArtists(input) {
 
 
 // Showing/hiding elements //////////////////////
-function showOverlay() {
-  overlay = document.getElementById('create-playlist-overlay')
+function showOverlay(id) {
+  overlay = document.getElementById(id)
   overlay.removeAttribute('hidden')
 }
 
-function hideOverlay() {
-  overlay = document.getElementById('create-playlist-overlay')
+function hideOverlay(id) {
+  overlay = document.getElementById(id)
   overlay.setAttribute('hidden', '')
 
   hideAdvancedOptions()

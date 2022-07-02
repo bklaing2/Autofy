@@ -151,7 +151,7 @@ h1 {
 }
 
 
-form {
+form, .card {
   max-width: 750px;
   max-height: 90%;
 
@@ -311,14 +311,15 @@ input[type="text"]:focus-visible {
 }
 
 .button:hover {
+  color: var(--primary-color);
   background-color: var(--secondary-color);
 }
 
 .button:active,
 input[type="radio"]:checked+.button,
 input[type="checkbox"]:checked+.button {
+  color: var(--accent-color);
   background-color: var(--secondary-color);
-  filter: brightness(140%);
 }
 
 
