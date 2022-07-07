@@ -111,7 +111,7 @@ def create_playlist():
     # Add default document
     new_id = playlists_coll.insert_one(Playlist(spotify).get_json(new=True)).inserted_id
 
-    q.enqueue(create_playlist_helper, new_id, job_timeout=1800) # 30 mins
+    q.enqueue(create_playlist_helper, new_id, job_timeout=7200) # 2 hrs
     return { 'playlist': { 'id': str(new_id), 'spotifyPlaylists': 'generating' } }
 
 def create_playlist_helper(playlist_id):
