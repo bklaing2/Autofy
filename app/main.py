@@ -109,7 +109,19 @@ def create_playlist():
     spotify = spotipy.Spotify(auth_manager=auth_manager)
 
     # Add default document
-    new_id = playlists_coll.insert_one(Playlist(spotify).get_json(new=True)).inserted_id
+    playlist_obj = {
+        'userId': spotify.current_user()['id'],
+        'playlistIds': 'generating',
+        'settings': {
+            'updateWhen': request.form.getlist('updateWhen')
+        },
+        'token': spotify.auth_manager.get_cached_token()
+    }
+
+    if 'artists' in request.form.keys():
+        playlist_obj['artists'] = request.form.getlist('artists')
+
+    new_id = playlists_coll.insert_one(playlist_obj).inserted_id
 
     q.enqueue(create_playlist_helper, new_id, job_timeout=7200) # 2 hrs
     return { 'playlist': { 'id': str(new_id), 'spotifyPlaylists': 'generating' } }
@@ -125,7 +137,7 @@ def create_playlist_helper(playlist_id):
     spotify = spotipy.Spotify(auth_manager=auth_manager)
 
     # Create playlist
-    new_playlist = Playlist(spotify)
+    new_playlist = Playlist(spotify, playlist_obj)
     new_playlist.generate()
 
     # Update in database

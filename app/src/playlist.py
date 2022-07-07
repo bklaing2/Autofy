@@ -11,20 +11,26 @@ class Playlist:
         self.spotify = spotify
 
         self.user_id = spotify.current_user()['id']
-        self.playlist_ids = playlist['playlistIds'] if 'playlistIds' in playlist else []
+
+        if 'playlistIds' in playlist:
+            if playlist['playlistIds'] == 'generating': self.playlist_ids = []
+            else: self.playlist_ids = playlist['playlistIds']
+        else: self.playlist_ids = []
+
         self.artist_ids = playlist['artists'] if 'artists' in playlist else None
 
         self.updated_at = playlist['updatedAt'] if 'updatedAt' in playlist else None
 
         self.token = spotify.auth_manager.get_cached_token()
+        self.settings = playlist['settings'] if 'settings' in playlist else None
 
 
     def generate(self):
         print('Generating playlist...\n')
 
 
-        # Get all tracks from followed artists and add to new playlist
-        self.artist_ids = self.get_followed_artist_ids()
+        # Get all tracks from artists and add to new playlist
+        self.artist_ids = self.get_followed_artist_ids() if self.artist_ids is None else self.artist_ids
         track_ids = self.get_track_ids_by_artist_ids(self.artist_ids)
         self.add_tracks(track_ids)
 
@@ -35,29 +41,47 @@ class Playlist:
 
 
     def update(self):
+        if 'updateWhen' not in self.settings: return
         print('Updating playlist...\n')
-        followed_artist_ids = self.get_followed_artist_ids()
 
-        # Get unfollowed and followed artists since last update
-        unfollowed_since = list(set(self.artist_ids) - set(followed_artist_ids))
-        followed_since = list(set(followed_artist_ids) - set(self.artist_ids))
+        # Get artists to be added or removed
+        if self.settings:
+            artists_added = self.settings['artistsAdded'] if 'artistsAdded' in self.settings else []
+            artists_removed = self.settings['artistsRemoved'] if 'artistsRemoved' in self.settings else []
+
+        else:
+            artists_added = []
+            artists_removed = []
 
 
-        # Remove tracks by unfollowed artists
-        tracks = self.get_track_ids_by_artist_ids(unfollowed_since)
+        if 'user follows/unfollows artist' in self.settings['updateWhen']:
+            followed_artist_ids = self.get_followed_artist_ids()
+
+            unfollowed_artists = list(set(followed_artist_ids) - set(self.artist_ids))
+            artists_added.extend(unfollowed_artists)
+
+            followed_artists = list(set(self.artist_ids) - set(followed_artist_ids))
+            artists_removed.extend(followed_artists)
+
+
+
+        # Remove tracks by removed artists
+        tracks = self.get_track_ids_by_artist_ids(artists_removed)
         self.remove_tracks(tracks)
+        self.artist_ids = list(set(self.artist_ids) - set(artists_removed))
 
-        # Add tracks by followed artists
-        tracks = self.get_track_ids_by_artist_ids(followed_since)
+        # Add tracks by added artists
+        tracks = self.get_track_ids_by_artist_ids(artists_added)
         self.add_tracks(tracks)
+        self.artist_ids.extend(artists_added)
+
 
         # Add tracks released since playlist was last updated, if last update time isn't today
-        if self.updated_at.date() < datetime.today().date():
+        if 'artist posts' in self.settings['updateWhen'] and self.updated_at.date() < datetime.today().date():
             tracks = self.get_track_ids_released_since_last_updated(self.artist_ids)
             self.add_tracks(tracks)
 
 
-        self.artist_ids = followed_artist_ids
         self.updated_at = datetime.now()
         print('Finished updating playlist')
 
@@ -140,22 +164,15 @@ class Playlist:
 
 
     # Return values as a dictionary
-    def get_json(self, new=False):
-        if new:
-            return {
-                'userId': self.user_id,
-                'playlistIds': 'generating',
-                'token': self.token
-            }
-
-        else:
-            return {
-                'userId': self.user_id,
-                'playlistIds': self.playlist_ids,
-                'artists': self.artist_ids,
-                'updatedAt': self.updated_at,
-                'token': self.token
-            }
+    def get_json(self):
+        return {
+            'userId': self.user_id,
+            'playlistIds': self.playlist_ids,
+            'artists': self.artist_ids,
+            'settings': self.settings,
+            'updatedAt': self.updated_at,
+            'token': self.token
+        }
 
 
 
