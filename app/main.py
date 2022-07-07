@@ -14,6 +14,14 @@ from app.src.cache_handlers import MemoryCacheHandler, RedisCacheHandler
 from app.src.worker import conn
 
 
+SCOPES = ' '.join([
+    'user-follow-read',
+    'playlist-read-private',
+    'playlist-modify-private',
+    'ugc-image-upload'
+])
+
+
 # Set up server
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(64)
@@ -61,7 +69,7 @@ def index():
 
     # Spotify auth
     cache_handler = RedisCacheHandler(r, session.get('uuid'))
-    auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-follow-read playlist-read-private playlist-modify-private', cache_handler=cache_handler, show_dialog=True)
+    auth_manager = spotipy.oauth2.SpotifyOAuth(scope=SCOPES, cache_handler=cache_handler, show_dialog=True)
 
     # If redirected from Spotify auth, add access token
     if request.args.get('code'):

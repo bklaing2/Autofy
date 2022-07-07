@@ -1,4 +1,5 @@
-from datetime import datetime, date
+import base64
+from datetime import datetime
 
 
 # Maximum playlist size allowed by Spotify
@@ -83,6 +84,9 @@ class Playlist:
 
 
         self.updated_at = datetime.now()
+
+        for playlist_id in self.playlist_ids:
+            self.spotify.playlist_change_details(playlist_id, self.get_description())
         print('Finished updating playlist')
 
 
@@ -100,13 +104,7 @@ class Playlist:
 
             # Or create a new playlist
             else:
-                playlist = self.spotify.user_playlist_create(
-                    self.user_id,
-                    f"Everything - {datetime.now().strftime('%m/%d/%Y')}{f' ({i+1})' if i > 0 else ''}",
-                    public=False,
-                    collaborative=False,
-                    description='Created on ' + datetime.now().strftime('%m/%d/%Y, %H:%M:%S') + ' by autofy')
-
+                playlist = self.create_spotify_playlist(name=f"autofy playlist{f' ({i + 1})' if i > 0 else ''}")
                 self.playlist_ids.append(playlist['id'])
                 playlist_capacity = MAX_LENGTH
 
@@ -271,6 +269,30 @@ class Playlist:
         try: release_date = datetime.strptime(item['release_date'], '%Y-%m-%d')
         except ValueError: release_date = datetime.strptime(item['release_date'], '%Y')
         return release_date > self.updated_at
+
+
+
+
+    def create_spotify_playlist(self, name):
+        playlist = self.spotify.user_playlist_create(
+            self.user_id,
+            name,
+            public=False,
+            collaborative=False,
+            description=self.get_description())
+
+        with open('app/playlist image.png', 'rb') as image:
+            image_b64 = base64.b64encode(image.read()).decode("utf-8")
+            self.spotify.playlist_upload_cover_image(playlist['id'], image_b64)
+
+        return playlist
+
+
+    def get_description(self):
+        if self.updated_at:
+            return f'Updated on {self.updated_at.strftime("%m/%d/%Y")} by autofy'
+        else:
+            return f'Updated on {datetime.now().strftime("%m/%d/%Y")} by autofy'
 
 
 
