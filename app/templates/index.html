@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}autofy{% endblock %}
+{% set overlayId = 'autofy' %}
 
 {% block body %}
   <main class="column" style="justify-content: flex-start;">
@@ -12,9 +12,4 @@
     <div id="my-playlists"></div>
 
   </main>
-
-  {% include 'components/overlay.html' %}
-
-  
-  <script src="{{ url_for('static', filename='js/playlists.js') }}"></script>
 {% endblock %}

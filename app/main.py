@@ -223,6 +223,28 @@ def update_playlist(playlist_id):
 
 
 
+@app.route('/search-artists', methods=['GET'])
+def search_for_artist():
+    cache_handler = RedisCacheHandler(r, session.get('uuid'))
+    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+    if not auth_manager.validate_token(cache_handler.get_cached_token()):
+        return redirect(url_for('index'))
+
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+
+    q = request.args.get('artist')
+
+    if q != '':
+        result = spotify.search(request.args.get('artist'), limit=50, offset=0, type='artist', market=None)['artists']['items']
+
+    artists = list(map(lambda artist: {
+        'id': artist['id'],
+        'name': artist['name'],
+        'img': artist['images'][0]['url'] if len(artist['images']) > 0 else None
+    }, result))
+
+
+    return jsonify(artists)
 
 
 

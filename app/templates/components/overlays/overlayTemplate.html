@@ -1,0 +1,5 @@
+<div id="{{ overlayId }}" class="overlay" onclick="hideOverlay('{{ overlayId }}')" hidden>
+  <div class="overlay-contents" onclick="event.stopPropagation()">
+    {% block overlayContents %}{% endblock %}
+  </div>
+</div>

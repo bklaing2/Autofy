@@ -76,8 +76,8 @@ function getPlaylists() {
 
 
 function addPlaylist(requestData) {
-   requestData.append('updateWhen', 'artist posts')
-   requestData.append('updateWhen', 'user follows/unfollows artist')
+  requestData.append('updateWhen', 'artist posts')
+  requestData.append('updateWhen', 'user follows/unfollows artist')
 
   // requestData.append('artists', '20wkVLutqVOYrc0kxFs7rA')
   // requestData.append('artists', '3mIj9lX2MWuHmhNCA7LSCW')

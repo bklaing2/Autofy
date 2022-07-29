@@ -1,0 +1,51 @@
+{% extends "components/overlays/overlayTemplate.html" %}
+
+{% set overlayId = 'create-playlist-overlay' %}
+
+{% block overlayContents %}
+  <form id="create-playlist-form" action="#" method="post" onclick="event.stopPropagation()">
+
+    <div class="grid" style="gap: 2rem; margin-bottom: 6rem;">
+      <h2 class="header" style="margin-bottom: 0;">Create playlist of followed artists</h2>
+
+      <div class="main column" style="gap: 3rem;">
+        <p style="margin: 0;">autofy will create a playlist of every artist you follow, and automatically update it when
+          they release new songs or you follow/unfollow artists</p>
+      </div>
+
+      <div class="footer row">
+        <input type="submit" value="Create Playlist" class="button accent" onclick="submitForm(event)">
+      </div>
+    </div>
+
+    <div class="grid" style="gap: 2rem; margin-bottom: 6rem;">
+      <h2 class="header" style="margin-bottom: 0;">Create playlist of selected artists</h2>
+    
+      <div class="main column" style="gap: 3rem;">
+        <p style="margin: 0;">autofy will create a playlist of selected artists and automatically update it when
+          they release new songs</p>
+        
+        <div id="select-artists" class="column">
+          <div id="artists" class="row" style="margin-bottom: 1rem;">
+            {% for _ in range(3) %}           
+              <!-- <div class="artist row" id="">
+                <img src="https://i.scdn.co/image/ab6761610000e5eb9e3acf1eaf3b8846e836f441">
+                <span>Taylor Swift</span>
+                <button class="button" type="button" onclick="removeArtist(this)">X</button>
+              </div> -->
+            {% endfor %}
+          </div>
+
+          <button class="add-button" type="button" onclick="showOverlay('search-artists-overlay')">+</button>
+        </div>
+      </div>
+    
+      <div class="footer row">
+        <input type="submit" value="Create Playlist" class="button accent" onclick="submitForm(event)">
+      </div>
+    </div>
+
+    <button type="reset" class="button" onclick="hideOverlay('create-playlist-overlay')">Cancel</button>
+
+  </form>
+{% endblock %}

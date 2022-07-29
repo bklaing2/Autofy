@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{% block title %}{% endblock %}</title>
+    <title>{{ title }}</title>
 
     <link rel="manifest" href="{{ url_for('static', filename='/site.webmanifest') }}">
 
@@ -19,11 +19,20 @@
   </head>
 
   <body>
+    <!-- Main -->
     {% include 'components/header.html' %}
     {% block body %}{% endblock %}
     {% include 'components/footer.html' %}
 
+    <!-- Overlays -->
+    {% include 'components/overlays/createPlaylistOverlay.html' %}
+    {% include 'components/overlays/searchArtistsOverlay.html' %}
+    {% include 'components/overlays/emailOverlay.html' %}
+
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/playlists.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/artists.js') }}"></script>
   </body>
 
 </html>

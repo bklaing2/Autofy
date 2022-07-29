@@ -1,0 +1,15 @@
+{% extends "components/overlays/overlayTemplate.html" %}
+
+{% set overlayId = 'email-overlay' %}
+
+{% block overlayContents %}
+  <h2 class="header">Contact</h2>
+
+  <p class="main column" style="gap: 3rem;">
+    If you have any questions or would like to leave some feedback, please email <a href="mailto: bklaing2+autofy@gmail.com" class="accent">bklaing2+autofy@gmail.com</a>
+  </p>
+
+  <div class="footer row">
+    <button class="button" onclick="hideOverlay('email-overlay')">Cancel</button>
+  </div>
+{% endblock %}
