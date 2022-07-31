@@ -3,10 +3,10 @@
 {% set overlayId = 'autofy' %}
 
 {% block body %}
-  <main class="column" style="justify-content: flex-start;">
+  <main class="column flex-start">
     <div class="row">
-      <h2 style="color: var(--primary-color);">My Playlists</h2>
-      <button class="add-button" onclick="showOverlay('create-playlist-overlay')">+</button>
+      <h2>My Playlists</h2>
+      <button class="add-button" onclick="onAddPlaylist()">+</button>
     </div>
 
     <div id="my-playlists"></div>

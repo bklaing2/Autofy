@@ -2,14 +2,14 @@
 
 {% set overlayId = 'search-artists-overlay' %}
 
-{% block overlayContents %}
-  <input id="artist-search" class="header" type="text" placeholder="Search artists..." onkeydown="onSearchArtists(this, event)" onfocus=""
-    onblur="" />
 
-  <ul class="main column" id="search-artists-results" style="align-content: flex-start; justify-content: flex-start; align-items: flex-start;">
-  </ul>
 
-  <div class="footer row">
-    <button class="button" onclick="hideOverlay('search-artists-overlay')">Cancel</button>
-  </div>
+{% block overlayHeader %}
+  <input id="artist-search" type="text" placeholder="Search artists..."
+    onkeydown="onSearchArtists(this, event)" onfocus="" onblur="" />
+{% endblock %}
+
+
+{% block overlayMain %}
+  <ul id="artist-search-results" class="artists column"></ul>
 {% endblock %}

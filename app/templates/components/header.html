@@ -1,9 +1,9 @@
-<header class="row" {% if profile_picture %}style="justify-content: space-between"{% endif %}>
+<header class="row bottom-line {% if profile_picture %}space-between{% endif %}">
 
   <h1>autofy</h1>
 
   {% if profile_picture %}
-    <img src="{{profile_picture['url']}}" alt="Spotify profile picture" class="profile-picture" width=100 height=100>
+    <img class="profile-picture" src="{{profile_picture['url']}}" alt="Spotify profile picture" width=100 height=100>
   {% endif %}
 
 </header>

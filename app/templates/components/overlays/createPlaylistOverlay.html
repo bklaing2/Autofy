@@ -2,50 +2,34 @@
 
 {% set overlayId = 'create-playlist-overlay' %}
 
-{% block overlayContents %}
-  <form id="create-playlist-form" action="#" method="post" onclick="event.stopPropagation()">
 
-    <div class="grid" style="gap: 2rem; margin-bottom: 6rem;">
-      <h2 class="header" style="margin-bottom: 0;">Create playlist of followed artists</h2>
+{% block overlayHeader %}Create Playlist{% endblock %}
 
-      <div class="main column" style="gap: 3rem;">
-        <p style="margin: 0;">autofy will create a playlist of every artist you follow, and automatically update it when
-          they release new songs or you follow/unfollow artists</p>
-      </div>
+{% block overlayMain %}
+  <form class="column gap-2" id="create-playlist-form" action="#" method="post" onclick="event.stopPropagation()">
+    <p>autofy playlists automatically update when artists release new songs</p>
+
+    <div class="create-playlist-section grid">
+      <h3 class="header no-border">Followed artists</h3>
 
       <div class="footer row">
         <input type="submit" value="Create Playlist" class="button accent" onclick="submitForm(event)">
       </div>
     </div>
 
-    <div class="grid" style="gap: 2rem; margin-bottom: 6rem;">
-      <h2 class="header" style="margin-bottom: 0;">Create playlist of selected artists</h2>
-    
-      <div class="main column" style="gap: 3rem;">
-        <p style="margin: 0;">autofy will create a playlist of selected artists and automatically update it when
-          they release new songs</p>
-        
-        <div id="select-artists" class="column">
-          <div id="artists" class="row" style="margin-bottom: 1rem;">
-            {% for _ in range(3) %}           
-              <!-- <div class="artist row" id="">
-                <img src="https://i.scdn.co/image/ab6761610000e5eb9e3acf1eaf3b8846e836f441">
-                <span>Taylor Swift</span>
-                <button class="button" type="button" onclick="removeArtist(this)">X</button>
-              </div> -->
-            {% endfor %}
-          </div>
 
-          <button class="add-button" type="button" onclick="showOverlay('search-artists-overlay')">+</button>
-        </div>
+    <div class="create-playlist-section grid">
+      <h3 class="header no-border">Choose artists</h3>
+    
+      <div class="main column">
+        <ul id="artists" class="artists column"></ul>
       </div>
     
       <div class="footer row">
+        <button type="button" class="button" onclick="onNewArtist()">add artist</button>
         <input type="submit" value="Create Playlist" class="button accent" onclick="submitForm(event)">
       </div>
     </div>
-
-    <button type="reset" class="button" onclick="hideOverlay('create-playlist-overlay')">Cancel</button>
 
   </form>
 {% endblock %}

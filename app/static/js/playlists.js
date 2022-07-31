@@ -5,6 +5,13 @@ const PLAYLISTS_CONTAINER = document.getElementById('my-playlists')
 getPlaylists()
 
 
+function onAddPlaylist() {
+  let form = document.getElementById('create-playlist-form')
+  form.reset()
+  clearArtists()
+
+  showOverlay('create-playlist-overlay')
+}
 
 
 // Functions ////////////////////////////////////
@@ -33,6 +40,7 @@ function getPlaylists() {
         parent_element = document.createElement('div')
         parent_element.id = playlist.id
         parent_element.classList.add('playlist_container')
+        parent_element.classList.add('margin-6')
         parent_element.classList.add('loading')
 
         PLAYLISTS_CONTAINER.appendChild(parent_element)

@@ -1,5 +1,12 @@
-<div id="{{ overlayId }}" class="overlay" onclick="hideOverlay('{{ overlayId }}')" hidden>
-  <div class="overlay-contents" onclick="event.stopPropagation()">
-    {% block overlayContents %}{% endblock %}
+<div class="overlay center" id="{{ overlayId }}" onclick="hideOverlay('{{ overlayId }}')" hidden>
+  <div class="overlay-contents grid" onclick="event.stopPropagation()">
+    
+    <h2 class="header bottom-line">{% block overlayHeader %}{% endblock %}</h2>
+    
+    <div class="main">{% block overlayMain %}{% endblock %}</div>
+    
+    <div class="footer">
+      <button class="button" onclick="hideOverlay('{{ overlayId }}')">Cancel</button>
+    </div>
   </div>
 </div>

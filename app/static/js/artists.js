@@ -1,5 +1,14 @@
 const ARTISTS_CONTAINER = document.getElementById('artists')
-const ARTISTS_SEARCH_RESULTS_CONTAINER = document.getElementById('search-artists-results')
+const ADD_ARTIST = document.getElementById('add-artist')
+const ARTISTS_SEARCH_INPUT = document.getElementById('artist-search')
+const ARTISTS_SEARCH_RESULTS_CONTAINER = document.getElementById('artist-search-results')
+
+
+function onNewArtist() {
+  showOverlay('search-artists-overlay')
+  ARTISTS_SEARCH_INPUT.focus()
+}
+
 
 let handleInput;
 function onSearchArtists(input, e) {
@@ -26,14 +35,15 @@ function onSearchArtists(input, e) {
 // </img></li>
 function populateSearchResults(artists) {
   console.log(artists)
-  // Remove all child nodes
-  while (ARTISTS_SEARCH_RESULTS_CONTAINER.firstChild) {
-    ARTISTS_SEARCH_RESULTS_CONTAINER.removeChild(ARTISTS_SEARCH_RESULTS_CONTAINER.lastChild);
-  }
+  clearSearchResults()
 
   // Add new results
   for (let artist of artists) {
-    let artistElement = document.createElement('li')
+    let artistContainer = document.createElement('li')
+    artistContainer.classList.add('artist-container')
+
+    let artistElement = document.createElement('div')
+    artistElement.classList.add('artist')
     artistElement.classList.add('row')
     artistElement.setAttribute('onclick', 'onArtistSearchResultClick(this)')
     artistElement.setAttribute('data-id', artist.id)
@@ -47,17 +57,26 @@ function populateSearchResults(artists) {
     let artistName = document.createElement('span')
     artistName.innerHTML = artist.name
 
-    let hiddenId = document.createElement('input')
-    hiddenId.type = 'hidden'
-    hiddenId.name = 'artists'
-    hiddenId.value = artist.id
-
 
     artistElement.appendChild(artistImg)
     artistElement.appendChild(artistName)
 
+    artistContainer.appendChild(artistElement)
+
     
-    ARTISTS_SEARCH_RESULTS_CONTAINER.appendChild(artistElement)
+    ARTISTS_SEARCH_RESULTS_CONTAINER.appendChild(artistContainer)
+  }
+}
+
+function clearSearchResults() {
+  while (ARTISTS_SEARCH_RESULTS_CONTAINER.firstChild) {
+    ARTISTS_SEARCH_RESULTS_CONTAINER.removeChild(ARTISTS_SEARCH_RESULTS_CONTAINER.lastChild);
+  }
+}
+
+function clearArtists() {
+  while (ARTISTS_CONTAINER.firstChild) {
+    ARTISTS_CONTAINER.removeChild(ARTISTS_CONTAINER.lastChild);
   }
 }
 
@@ -95,16 +114,29 @@ function addArtist(artist) {
 
 
 
+  let artistContainer = document.createElement('li')
+  artistContainer.classList.add('artist-container')
+  artistContainer.classList.add('row')
+  
   let artistElement = document.createElement('div')
   artistElement.classList.add('artist')
   artistElement.classList.add('row')
-  artistElement.id = artist.id
+  artistElement.setAttribute('onclick', 'onArtistSearchResultClick(this)')
+  artistElement.setAttribute('data-id', artist.id)
+  artistElement.setAttribute('data-name', artist.name)
+  artistElement.setAttribute('data-img', artist.img)
 
   let artistImg = document.createElement('img')
+  artistImg.classList.add('artist-img')
   artistImg.src = artist.img
 
   let artistName = document.createElement('span')
   artistName.innerHTML = artist.name
+
+  let hiddenId = document.createElement('input')
+  hiddenId.type = 'hidden'
+  hiddenId.name = 'artists'
+  hiddenId.value = artist.id
 
   let deleteArtist = document.createElement('button')
   deleteArtist.innerHTML = 'X'
@@ -112,19 +144,20 @@ function addArtist(artist) {
   deleteArtist.type = 'button'
   deleteArtist.setAttribute('onclick', 'removeArtist(this)')
 
-  let hiddenId = document.createElement('input')
-  hiddenId.type = 'hidden'
-  hiddenId.name = 'artists'
-  hiddenId.value = artist.id
-
 
   artistElement.appendChild(artistImg)
   artistElement.appendChild(artistName)
-  artistElement.appendChild(deleteArtist)
-  artistElement.appendChild(hiddenId)
+
+  artistContainer.appendChild(artistElement)
+  artistContainer.appendChild(deleteArtist)
+  artistContainer.appendChild(hiddenId)
 
   
-  ARTISTS_CONTAINER.appendChild(artistElement)
+  ARTISTS_CONTAINER.insertBefore(artistContainer, ADD_ARTIST)
+
+
+  clearSearchResults()
+  ARTISTS_SEARCH_INPUT.value = ""
 }
 
 function removeArtist(deleteArtist) {
