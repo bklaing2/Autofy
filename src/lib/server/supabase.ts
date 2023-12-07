@@ -17,7 +17,6 @@ async function Supabase (cookies: Cookies, authorizationCode?: string | null) {
   if (authorizationCode) {
     await supabase.auth.exchangeCodeForSession(authorizationCode)
     const { data: { session } } = await supabase.auth.getSession()
-    console.log('FROM SUPABASE')
     await Tokens.save(session?.provider_token, session?.provider_refresh_token, cookies)
     throw redirect(303, '/playlists');
   }

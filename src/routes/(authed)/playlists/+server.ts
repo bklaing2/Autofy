@@ -1,4 +1,4 @@
-import { json, redirect } from '@sveltejs/kit'
+import { redirect } from '@sveltejs/kit'
 import Playlist from '$lib/server/playlist'
 import { playlistImageBase64 } from '$lib/server/const.js'
 
@@ -52,15 +52,4 @@ export async function POST({ request, locals }) {
 	
 	Playlist.populate(data.body.id, (followed ?? []).concat(artists), spotify)
 	throw redirect(303, '/playlists')
-}
-
-
-export async function PATCH({ url, locals }) {
-	const { spotify } = locals
-
-	const query = url.searchParams.get('q')
-	if (!query) return json('')
-
-	const artists = await spotify.searchArtists(query)
-	return json(artists.body.artists?.items);
 }
