@@ -1,9 +1,10 @@
+import { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } from "$env/static/private";
 import type { Cookies } from "@sveltejs/kit";
 import Tokens from "$lib/server/tokens";
 import SpotifyWebApi from "spotify-web-api-node";
 import Supabase from "$lib/server/supabase";
 
-async function Spotify (cookies: Cookies) {
+async function Spotify(cookies: Cookies) {
   const { accessToken, refreshToken, valid } = Tokens.get(cookies)
   const spotify = new SpotifyWebApi({ accessToken: accessToken })
   if (accessToken && valid) return spotify
@@ -17,8 +18,8 @@ async function Spotify (cookies: Cookies) {
   }
 
   console.log('Refreshing token from Spotify')
-  spotify.setClientId(process.env.SPOTIFY_CLIENT_ID!)
-  spotify.setClientSecret(process.env.SPOTIFY_CLIENT_SECRET!)
+  spotify.setClientId(SPOTIFY_CLIENT_ID)
+  spotify.setClientSecret(SPOTIFY_CLIENT_SECRET)
   spotify.setRefreshToken(refreshToken)
 
   const { body: tokens } = await spotify.refreshAccessToken()
@@ -26,10 +27,10 @@ async function Spotify (cookies: Cookies) {
   return spotify
 }
 
-export async function Service (accessToken: string, refreshToken: string) {
+export async function Service(accessToken: string, refreshToken: string) {
   const spotify = new SpotifyWebApi({
-    clientId: process.env.SPOTIFY_CLIENT_ID!,
-    clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
+    clientId: SPOTIFY_CLIENT_ID,
+    clientSecret: SPOTIFY_CLIENT_SECRET,
     accessToken: accessToken,
     refreshToken: refreshToken
   })
