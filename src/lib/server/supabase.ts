@@ -2,7 +2,7 @@ import { ENV, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY, SUPABASE_URL } from "$env
 import { redirect, type Cookies } from "@sveltejs/kit";
 import { createServerClient } from "@supabase/ssr";
 
-import type { Database } from "../types";
+import type { Database } from "../types.db";
 import Tokens from "./tokens";
 
 
@@ -12,7 +12,8 @@ async function Supabase(cookies: Cookies, authorizationCode?: string | null) {
       get: (key) => cookies.get(key),
       set: (key, value, options) => cookies.set(key, value, { ...options, secure: ENV !== 'DEV' }),
       remove: (key, options) => cookies.delete(key, { ...options, secure: ENV !== 'DEV' })
-    }
+    },
+    db: { schema: 'autofy' }
   })
 
   if (authorizationCode) {
