@@ -33,6 +33,7 @@
     "tslib": "^2.4.1",
     "typescript": "^5.0.0",
     "unplugin-icons": "^0.17.4",
+    "vercel": "^34.2.8",
     "vite": "^4.4.2"
   },
   "type": "module",
