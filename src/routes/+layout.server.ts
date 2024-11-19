@@ -1,4 +1,8 @@
-export async function load({ locals }) {
+import type { LayoutServerLoad } from './$types'
+
+export const load: LayoutServerLoad = async ({ locals }) => {
   const { spotify, signedIn } = locals
-  return { user: signedIn ? (await spotify.getMe()).body : undefined }
+  const user = signedIn ? (await spotify.getMe()).body : undefined
+
+  return { user }
 }
