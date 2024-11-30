@@ -2,36 +2,36 @@ import { Service as Spotify } from "$lib/server/spotify"
 import Playlist from "$lib/server/playlist"
 import { eq } from 'drizzle-orm'
 import db from "$lib/server/db"
-import { playlistsTable, tokensTable } from "$lib/server/db/schema"
+import { playlistsTable, usersTable } from "$lib/server/db/schema"
 
 export async function GET() {
 
-  const data = await db
-    .select()
-    .from(playlistsTable)
-    .innerJoin(tokensTable, eq(playlistsTable.userId, tokensTable.userId))
+  const playlists = await db.query.playlistsTable.findMany({
+    with: {
+      user: true
+    }
+  })
 
-  await Promise.all(data.map(async d => {
-    if (!d.tokens) return
-    const { spotify, accessToken } = await Spotify(d.tokens?.accessToken, d.tokens?.refreshToken)
+
+  await Promise.all(playlists.map(async p => {
+    const { spotify, accessToken } = await Spotify(p.user.accessToken, p.user.refreshToken)
 
     await db
-      .update(tokensTable)
+      .update(usersTable)
       .set({ accessToken })
-      .where(eq(tokensTable.userId, d.tokens.userId))
-
+      .where(eq(usersTable.id, p.user.id))
 
 
     // Delete if the user removed the playlist
     const exists = await spotify.getUserPlaylists()
-    if (!exists.body.items.find(p => p.id === d.playlists.id)) {
+    if (!exists.body.items.find(p => p.id === p.id)) {
       await db
         .delete(playlistsTable)
-        .where(eq(playlistsTable.id, d.playlists.id))
+        .where(eq(playlistsTable.id, p.id))
       return
     }
 
-    Playlist.update(d.playlists, spotify)
+    Playlist.update(p, spotify)
   }))
 
   return new Response(null, { status: 204 })

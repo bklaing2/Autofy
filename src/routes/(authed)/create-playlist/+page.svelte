@@ -1,21 +1,16 @@
 <script lang="ts">
 	import Playlist from '$lib/CreatePlaylist/Playlist.svelte';
-
-	let type: 'followed artists' | 'select artists' = 'select artists'
 </script>
-
 
 <svelte:head>
 	<title>create playlist</title>
 	<meta name="description" content="My autofy playlists" />
 </svelte:head>
 
-
 <main class="layout">
 	<h1 class="header">create autofy playlist</h1>
-	<Playlist action='/create-playlist' />
+	<Playlist action="/create-playlist" />
 </main>
-
 
 <style>
 	.layout {
@@ -34,3 +29,4 @@
 		text-align: center;
 	}
 </style>
+
