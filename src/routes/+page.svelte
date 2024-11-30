@@ -1,7 +1,6 @@
 <script lang="ts">
-	export let data
+	export let data;
 </script>
-
 
 <svelte:head>
 	<title>autofy</title>
@@ -12,8 +11,10 @@
 	<span class="center">No more manual updates!</span>
 
 	<p>
-		Playlists created with <span class="autofy">autofy</span> automatically refresh as artists release new music.<br /><br />
-		<span class="autofy">autofy</span> playlists can also stay up-to-date with your favorite artists, adding or removing tracks whenever you follow or unfollow an artist
+		Playlists created with <span class="autofy">autofy</span> automatically refresh as artists
+		release new music.<br /><br />
+		<span class="autofy">autofy</span> playlists can also stay up-to-date with your favorite artists,
+		adding or removing tracks whenever you follow or unfollow an artist
 	</p>
 
 	{#if data.user}
@@ -49,7 +50,8 @@
 		display: block;
 	}
 
-	a, button {
+	a,
+	button {
 		width: min-content;
 		margin-right: auto;
 		margin-left: auto;
@@ -69,10 +71,13 @@
 			background-color 0.1s ease-in;
 	}
 
-	a:hover, button:hover {
+	a:hover,
+	button:hover {
 		color: black;
 		background-color: var(--accent-1);
 	}
 
-	a { font-size: 1.2rem; }
+	a {
+		font-size: 1.2rem;
+	}
 </style>

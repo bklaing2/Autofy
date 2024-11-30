@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from './$types'
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { playlistsTable } from '$lib/server/db/schema'
 
 
@@ -15,7 +15,6 @@ export const load: LayoutServerLoad = async ({ locals }) => {
     .where(eq(playlistsTable.userId, user))
 
   let playlists = data.map(p => p.id)
-  if (playlists.length === 0) return { playlists }
 
   // const exists = await spotify.getUserPlaylists()
   // for (let i = playlists.length - 1; i >= 0; i--) {
@@ -32,5 +31,5 @@ export const load: LayoutServerLoad = async ({ locals }) => {
   //   playlists = [...playlists.slice(0, i), ...playlists.slice(i + 1)]
   // }
 
-  return { playlists: playlists }
+  return { playlists }
 }
