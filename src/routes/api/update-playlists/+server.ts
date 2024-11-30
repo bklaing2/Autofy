@@ -1,40 +1,38 @@
-import { Service as Supabase } from "$lib/server/supabase"
 import { Service as Spotify } from "$lib/server/spotify"
 import Playlist from "$lib/server/playlist"
-import { error } from "@sveltejs/kit"
+import { eq } from 'drizzle-orm'
 import db from "$lib/server/db"
+import { playlistsTable, tokensTable } from "$lib/server/db/schema"
 
 export async function GET() {
 
-	const response = await db
-		.from('playlists')
-		.select('*, tokens(access_token, refresh_token)')
+  const data = await db
+    .select()
+    .from(playlistsTable)
+    .innerJoin(tokensTable, eq(playlistsTable.userId, tokensTable.userId))
 
-	if (response.error) return error(500, response.error.message)
+  await Promise.all(data.map(async d => {
+    if (!d.tokens) return
+    const { spotify, accessToken } = await Spotify(d.tokens?.accessToken, d.tokens?.refreshToken)
 
-	await Promise.all(response.data.map(async playlist => {
-		if (!playlist.tokens) return
-		const { spotify, accessToken } = await Spotify(playlist.tokens?.access_token, playlist.tokens?.refresh_token)
-
-		await db
-			.from('tokens')
-			.update({ access_token: accessToken })
-			.eq('user_id', playlist.user_id)
-
+    await db
+      .update(tokensTable)
+      .set({ accessToken })
+      .where(eq(tokensTable.userId, d.tokens.userId))
 
 
-		// Delete if the user removed the playlist
-		const exists = await spotify.getUserPlaylists()
-		if (!exists.body.items.find(p => p.id === playlist.id)) {
-			await db
-				.from('playlists')
-				.delete()
-				.eq('id', playlist.id)
-			return
-		}
 
-		Playlist.update(playlist, spotify)
-	}))
+    // Delete if the user removed the playlist
+    const exists = await spotify.getUserPlaylists()
+    if (!exists.body.items.find(p => p.id === d.playlists.id)) {
+      await db
+        .delete(playlistsTable)
+        .where(eq(playlistsTable.id, d.playlists.id))
+      return
+    }
 
-	return new Response(null, { status: 204 })
+    Playlist.update(d.playlists, spotify)
+  }))
+
+  return new Response(null, { status: 204 })
 }

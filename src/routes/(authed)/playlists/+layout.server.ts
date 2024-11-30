@@ -16,20 +16,5 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
   let playlists = data.map(p => p.id)
 
-  // const exists = await spotify.getUserPlaylists()
-  // for (let i = playlists.length - 1; i >= 0; i--) {
-  //   const playlist = playlists[i]
-  //   if (exists.body.items.find(p => p.id === playlist)) continue
-  //
-  //   db
-  //     .delete(playlistsTable)
-  //     .where(and(
-  //       eq(playlistsTable.userId, user),
-  //       eq(playlistsTable.id, playlist)
-  //     ))
-  //
-  //   playlists = [...playlists.slice(0, i), ...playlists.slice(i + 1)]
-  // }
-
   return { playlists }
 }
