@@ -22,15 +22,3 @@ export default async function Spotify(accessToken?: string, refreshToken?: strin
 
   return spotify
 }
-
-export async function Service(accessToken: string, refreshToken: string) {
-  const spotify = new SpotifyWebApi({
-    clientId: SPOTIFY_CLIENT_ID,
-    clientSecret: SPOTIFY_CLIENT_SECRET,
-    accessToken: accessToken,
-    refreshToken: refreshToken
-  })
-
-  const data = await spotify.refreshAccessToken()
-  return { spotify: spotify, accessToken: data.body.access_token }
-}

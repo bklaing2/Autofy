@@ -1,4 +1,4 @@
-import { Service as Spotify } from "$lib/server/spotify"
+import Spotify from "$lib/server/spotify"
 import Playlist from "$lib/server/playlist"
 import { eq } from 'drizzle-orm'
 import db from "$lib/server/db"
@@ -14,12 +14,17 @@ export async function GET() {
 
 
   await Promise.all(playlists.map(async p => {
-    const { spotify, accessToken } = await Spotify(p.user.accessToken, p.user.refreshToken)
+    const spotify = await Spotify(p.user.accessToken, p.user.refreshToken)
+    const accessToken = spotify.getAccessToken()
+    const refreshToken = spotify.getRefreshToken()
+
+    if (!accessToken || !refreshToken) return
+
 
     await db
-      .update(usersTable)
-      .set({ accessToken })
-      .where(eq(usersTable.id, p.user.id))
+      .insert(usersTable)
+      .values({ id: p.userId, accessToken, refreshToken })
+      .onConflictDoUpdate({ target: usersTable.id, set: { accessToken, refreshToken } });
 
 
     // Delete if the user removed the playlist
