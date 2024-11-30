@@ -1,16 +1,15 @@
-<script>
-	import Header from './Header.svelte'
-	import Footer from './Footer.svelte'
-	import './styles.css'
+<script lang="ts">
+	import Header from './Header.svelte';
+	import Footer from './Footer.svelte';
+	import './styles.css';
 	import { onMount } from 'svelte';
 
-	export let data
+	export let data;
 
 	onMount(() => {
 		const { hash } = document.location;
 		const scrollTo = hash && document.getElementById(hash.slice(1));
-		if (scrollTo)
-			scrollTo.scrollIntoView();
+		if (scrollTo) scrollTo.scrollIntoView();
 	});
 </script>
 
@@ -24,7 +23,6 @@
 	<slot />
 	<Footer signedIn={!!data.user} />
 </div>
-
 
 <style>
 	.layout {
