@@ -7,4 +7,3 @@ RUN bun install
 
 COPY . .
 RUN bun run build
-
