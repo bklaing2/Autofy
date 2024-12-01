@@ -20,6 +20,8 @@ services:
     command: ["bun", "build/index.js"]
     ports:
       - "80:3000"
+    profiles:
+      - prod
     depends_on:
       - db
 
