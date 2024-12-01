@@ -13,7 +13,7 @@ services:
     volumes:
       - db:/var/lib/postgresql/data
 
-  frontend:
+  frontend-dev:
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -21,7 +21,25 @@ services:
       - .:/app
     ports:
       - "5173:5173"
-    command: ["bun", "dev"]  # Run `bun dev` to start the dev server
+    command: ["bun", "--bun", "run", "dev"]
+    profiles:
+      - dev
+    depends_on:
+      - db
+
+  frontend-preview:
+    build:
+      context: .
+      dockerfile: Dockerfile.preview
+    volumes:
+      - .:/app
+    ports:
+      - "5173:4173"
+    command: ["bun", "--bun", "run", "preview"]
+    profiles:
+      - preview
+    depends_on:
+      - db
 
 
 volumes:
