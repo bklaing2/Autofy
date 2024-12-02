@@ -1,0 +1,9 @@
+FROM oven/bun:1.1.38-alpine
+
+# Install Node.js as a fallback because Bun hasn't implemented CompressionStream yet
+RUN apk add --no-cache nodejs npm
+
+WORKDIR /app
+
+COPY package.json bun.lockb . 
+RUN bun install
