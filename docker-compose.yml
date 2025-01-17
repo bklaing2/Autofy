@@ -13,13 +13,43 @@ services:
     volumes:
       - db:/var/lib/postgresql/data
 
+  queue-playlists:
+    build:
+      context: ./lambdas/queue-playlists
+      dockerfile: Dockerfile.dev
+    environment: 
+      DATABASE_URL: ${DATABASE_URL}
+      AWS_SQS_URL: ${AWS_SQS_URL}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ./lambdas/queue-playlists/:/src
+    working_dir: /src
+    command: go run main.go
+    depends_on:
+      - db
+    profiles:
+      - lambda
+
+  update-playlist-lambda:
+    build:
+      context: ./lambdas/update-playlist
+      dockerfile: Dockerfile
+    ports:
+      - 9000:8080
+    entrypoint: /usr/local/bin/aws-lambda-rie
+    command: ./main
+    depends_on:
+      - db
+
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
     command: bun build/index.js
     ports:
-      - 80:3000
+      - 8080:3000
     profiles:
       - prod
     depends_on:

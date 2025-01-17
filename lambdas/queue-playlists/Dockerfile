@@ -1,8 +1,8 @@
-FROM golang:1.23.4 as build
+FROM golang:1.23.4 AS build
 WORKDIR /src
 
 # Copy dependencies list
-COPY go.mod go.sum ./
+COPY go.mod go.sum .
 
 # Build with optional lambda.norpc tag
 COPY main.go .

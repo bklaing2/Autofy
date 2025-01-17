@@ -16,3 +16,6 @@ vite.config.ts.timestamp-*
 playlist image jpeg 64.txt
 playlist image png 64.txt
 *.xcf
+
+# sst
+.sst

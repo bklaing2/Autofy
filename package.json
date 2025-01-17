@@ -2,13 +2,14 @@
   "name": "autofy",
   "version": "0.0.1",
   "scripts": {
-    "dev": "vite dev",
     "build": "vite build",
-    "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "dev": "vite dev",
+    "format": "prettier --write .",
     "lint": "prettier --check . && eslint .",
-    "format": "prettier --write ."
+    "preview": "vite preview",
+    "db": "sst shell drizzle-kit"
   },
   "devDependencies": {
     "@fontsource/fira-mono": "^4.5.10",
@@ -45,6 +46,8 @@
     "dotenv-expand": "^12.0.1",
     "drizzle-orm": "^0.36.4",
     "pg": "^8.13.1",
-    "spotify-web-api-node": "^5.0.2"
+    "spotify-web-api-node": "^5.0.2",
+    "sst": "3.5.13",
+    "svelte-kit-sst": "2.43.5"
   }
 }
