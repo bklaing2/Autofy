@@ -5,7 +5,7 @@ import { playlistsTable } from '$lib/server/db/schema';
 
 
 export const PATCH: RequestHandler = async ({ params, request, locals }) => {
-  const { db, spotify } = locals
+  const { db, queue, spotify } = locals
   const playlistId = params.id
 
   const form = await request.formData()
@@ -50,6 +50,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
     .onConflictDoUpdate({ target: playlistsTable.id, set: data })
     .returning()
 
-  Playlist.updateSettings(oldPlaylist, newPlaylist, spotify)
-  return new Response(null, { status: 204 })
+  const response = await queue.updatePlaylist(playlistId)
+  // Playlist.updateSettings(oldPlaylist, newPlaylist, spotify)
+  return new Response(null, { status: response.$metadata.httpStatusCode })
 }

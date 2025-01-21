@@ -5,7 +5,7 @@
 
 declare module "sst" {
   export interface Resource {
-    "AutofyDb": {
+    "Db": {
       "database": string
       "host": string
       "password": string
@@ -13,12 +13,23 @@ declare module "sst" {
       "type": "sst.aws.Postgres"
       "username": string
     }
-    "AutofyService": {
-      "service": string
-      "type": "sst.aws.Service"
+    "Frontend": {
+      "type": "sst.aws.SvelteKit"
       "url": string
     }
-    "AutofyVpc": {
+    "QueuePlaylists": {
+      "name": string
+      "type": "sst.aws.Function"
+    }
+    "UpdatePlaylist": {
+      "name": string
+      "type": "sst.aws.Function"
+    }
+    "UpdatePlaylists": {
+      "type": "sst.aws.Queue"
+      "url": string
+    }
+    "Vpc": {
       "bastion": string
       "type": "sst.aws.Vpc"
     }

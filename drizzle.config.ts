@@ -11,11 +11,11 @@ export default defineConfig({
   dialect: 'postgresql',
   casing: 'snake_case',
   dbCredentials: {
-    host: Resource.AutofyDb.host,
-    port: Resource.AutofyDb.port,
-    user: Resource.AutofyDb.username,
-    password: Resource.AutofyDb.password,
-    database: Resource.AutofyDb.database,
+    host: Resource.Db.host,
+    port: Resource.Db.port,
+    user: Resource.Db.username,
+    password: Resource.Db.password,
+    database: Resource.Db.database,
     ssl: false
   }
 });

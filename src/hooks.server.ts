@@ -1,5 +1,6 @@
 import type { Handle } from '@sveltejs/kit'
 import db from '$lib/server/db'
+import queue from '$lib/server/queue'
 import Spotify from '$lib/server/spotify'
 import Tokens from '$lib/server/tokens'
 import { usersTable } from '$lib/server/db/schema'
@@ -25,7 +26,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       .onConflictDoUpdate({ target: usersTable.id, set: { accessToken, refreshToken } });
   }
 
-  event.locals = { db, spotify, signedIn }
+  event.locals = { db, queue, spotify, signedIn }
 
   return resolve(event, {
     filterSerializedResponseHeaders(name) { return name === 'content-range' }

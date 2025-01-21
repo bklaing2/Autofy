@@ -4,11 +4,11 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from './schema';
 
 const pool = new Pool({
-  host: Resource.AutofyDb.host,
-  port: Resource.AutofyDb.port,
-  user: Resource.AutofyDb.username,
-  password: Resource.AutofyDb.password,
-  database: Resource.AutofyDb.database,
+  host: Resource.Db.host,
+  port: Resource.Db.port,
+  user: Resource.Db.username,
+  password: Resource.Db.password,
+  database: Resource.Db.database,
 })
 
 const db = drizzle(pool, { schema, casing: 'snake_case' });
