@@ -1,12 +1,40 @@
-package main
+package database
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sst/sst/v3/sdk/golang/resource"
 )
 
-func DbUrl() (string, error) {
+type Database struct {
+	ctx    context.Context
+	client *pgxpool.Pool
+}
+
+func CreatePool(ctx context.Context) (*Database, error) {
+	dbUrl, err := getDbUrl()
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := pgxpool.New(ctx, dbUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Database{
+		ctx:    ctx,
+		client: db,
+	}, nil
+}
+
+func (db *Database) Close() {
+	db.client.Close()
+}
+
+func getDbUrl() (string, error) {
 	username, err := resource.Get("Db", "username")
 	if err != nil {
 		return "", fmt.Errorf("Failed to get database username: %v", err)
@@ -34,13 +62,4 @@ func DbUrl() (string, error) {
 
 	username, password, host, port, name = username.(string), password.(string), host.(string), port.(string), name.(string)
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", username, password, host, port, name), nil
-}
-
-func QueueUrl() (string, error) {
-	queueUrl, err := resource.Get("UpdatePlaylist", "url")
-	if err != nil {
-		return "", fmt.Errorf("Failed to get UpdatePlaylist queue url: %v", err)
-	}
-
-	return queueUrl.(string), nil
 }

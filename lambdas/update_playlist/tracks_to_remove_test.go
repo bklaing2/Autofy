@@ -1,20 +1,24 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/bklaing2/autofy/lambdas/util/models"
+)
 
 func TestSongsToRemoveWhenArtistsRemoved(t *testing.T) {
 	t.Run("artist is in playlist", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			Artists: []string{"artist 1"},
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			Artists: []string{},
 		}
 
 		wantedSongsToRemove := []string{"song 1", "song 2", "song 4", "song 5"}
 
-		songsToRemove := fetchSongsToRemove(playlist, playlistUpdates, fetchArtistSongs)
+		songsToRemove := fetchTracksToRemove(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToRemoveIds := []string{}
 		for _, s := range songsToRemove {
@@ -27,17 +31,17 @@ func TestSongsToRemoveWhenArtistsRemoved(t *testing.T) {
 	})
 
 	t.Run("artist is not in playlist", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			Artists: []string{},
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			Artists: []string{},
 		}
 
 		wantedSongsToRemove := []string{}
 
-		songsToRemove := fetchSongsToRemove(playlist, playlistUpdates, fetchArtistSongs)
+		songsToRemove := fetchTracksToRemove(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToRemoveIds := []string{}
 		for _, s := range songsToRemove {
@@ -50,17 +54,17 @@ func TestSongsToRemoveWhenArtistsRemoved(t *testing.T) {
 	})
 
 	t.Run("artist is in playlist followed", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			Artists: []string{"artist 1"},
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			FollowedArtists: []string{"artist 1"},
 		}
 
 		wantedSongsToRemove := []string{}
 
-		songsToRemove := fetchSongsToRemove(playlist, playlistUpdates, fetchArtistSongs)
+		songsToRemove := fetchTracksToRemove(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToRemoveIds := []string{}
 		for _, s := range songsToRemove {
@@ -75,19 +79,19 @@ func TestSongsToRemoveWhenArtistsRemoved(t *testing.T) {
 
 func TestSongsToRemoveWhenUserUnfollowsArtist(t *testing.T) {
 	t.Run("flag unset", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			FollowedArtists:               []string{"artist 1"},
 			UpdateWhenUserUnfollowsArtist: false,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			FollowedArtists:               []string{},
 			UpdateWhenUserUnfollowsArtist: false,
 		}
 
 		wantedSongsToRemove := []string{}
 
-		songsToRemove := fetchSongsToRemove(playlist, playlistUpdates, fetchArtistSongs)
+		songsToRemove := fetchTracksToRemove(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToRemoveIds := []string{}
 		for _, s := range songsToRemove {
@@ -100,19 +104,19 @@ func TestSongsToRemoveWhenUserUnfollowsArtist(t *testing.T) {
 	})
 
 	t.Run("flag set", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			FollowedArtists:               []string{"artist 1"},
 			UpdateWhenUserUnfollowsArtist: true,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			FollowedArtists:               []string{},
 			UpdateWhenUserUnfollowsArtist: true,
 		}
 
 		wantedSongsToRemove := []string{"song 1", "song 2", "song 4", "song 5"}
 
-		songsToRemove := fetchSongsToRemove(playlist, playlistUpdates, fetchArtistSongs)
+		songsToRemove := fetchTracksToRemove(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToRemoveIds := []string{}
 		for _, s := range songsToRemove {
@@ -125,19 +129,19 @@ func TestSongsToRemoveWhenUserUnfollowsArtist(t *testing.T) {
 	})
 
 	t.Run("artist not followed", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			FollowedArtists:               []string{},
 			UpdateWhenUserUnfollowsArtist: true,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			FollowedArtists:               []string{},
 			UpdateWhenUserUnfollowsArtist: true,
 		}
 
 		wantedSongsToRemove := []string{}
 
-		songsToRemove := fetchSongsToRemove(playlist, playlistUpdates, fetchArtistSongs)
+		songsToRemove := fetchTracksToRemove(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToRemoveIds := []string{}
 		for _, s := range songsToRemove {
@@ -151,7 +155,7 @@ func TestSongsToRemoveWhenUserUnfollowsArtist(t *testing.T) {
 }
 
 func TestSongsToRemove(t *testing.T) {
-	playlist := Playlist{
+	playlist := models.Playlist{
 		Artists:                       []string{"artist 1", "artist 2"},
 		FollowedArtists:               []string{"artist 3"},
 		UpdateWhenArtistPosts:         true,
@@ -159,7 +163,7 @@ func TestSongsToRemove(t *testing.T) {
 		UpdatedAt:                     3,
 	}
 
-	playlistUpdates := Playlist{
+	playlistUpdates := models.Playlist{
 		Artists:                       []string{"artist 1"},
 		FollowedArtists:               []string{},
 		UpdateWhenArtistPosts:         true,
@@ -168,7 +172,7 @@ func TestSongsToRemove(t *testing.T) {
 
 	wantedSongsToRemove := []string{"song 3", "song 6", "song 7", "song 8", "song 9"}
 
-	songsToAdd := fetchSongsToRemove(playlist, playlistUpdates, fetchArtistSongs)
+	songsToAdd := fetchTracksToRemove(playlist, playlistUpdates, fetchArtistSongs)
 
 	songsToAddIds := []string{}
 	for _, s := range songsToAdd {

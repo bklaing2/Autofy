@@ -16,6 +16,7 @@ export const playlistsTable = pgTable('playlists', {
   userId: text().notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
   artists: text().array().notNull().default(sql`ARRAY[]::text[]`),
   followedArtists: text().array().notNull().default(sql`ARRAY[]::text[]`),
+  includeFollowedArtists: boolean().notNull().default(false),
   updateWhenArtistPosts: boolean().notNull().default(false),
   updateWhenUserFollowsArtist: boolean().notNull().default(false),
   updateWhenUserUnfollowsArtist: boolean().notNull().default(false),

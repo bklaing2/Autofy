@@ -1,5 +1,4 @@
 import type { RequestHandler } from './$types';
-import Playlist from "$lib/server/playlist.js"
 import { eq } from 'drizzle-orm'
 import { playlistsTable } from '$lib/server/db/schema';
 
@@ -24,33 +23,25 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 
   const updateWhen = form.getAll('update-when') as string[]
 
-  const followedArtists = includeFollowedArtists ? await Playlist.getFollowedArtists(spotify) : []
-  console.log(`Artists: ${artists.length}`)
+  const [playlist] = await db
+    .select({ followedArtists: playlistsTable.followedArtists })
+    .from(playlistsTable)
+    .where(eq(playlistsTable.id, playlistId))
+    .limit(1)
 
-  const data = {
+  const updates = {
     id: playlistId,
     userId: (await spotify.getMe()).body.id,
     artists,
-    followedArtists,
+    followedArtists: playlist.followedArtists,
+    includeFollowedArtists,
     updateWhenArtistPosts: updateWhen.includes('artist-posts'),
     updateWhenUserFollowsArtist: updateWhen.includes('user-follows-artist'),
     updateWhenUserUnfollowsArtist: updateWhen.includes('user-unfollows-artist')
   }
 
 
-  const [oldPlaylist] = await db
-    .select()
-    .from(playlistsTable)
-    .where(eq(playlistsTable.id, playlistId))
-    .limit(1)
-
-  const [newPlaylist] = await db
-    .insert(playlistsTable)
-    .values(data)
-    .onConflictDoUpdate({ target: playlistsTable.id, set: data })
-    .returning()
-
-  const response = await queue.updatePlaylist(playlistId)
+  const response = await queue.updatePlaylist(updates)
   // Playlist.updateSettings(oldPlaylist, newPlaylist, spotify)
   return new Response(null, { status: response.$metadata.httpStatusCode })
 }

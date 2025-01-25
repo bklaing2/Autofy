@@ -1,23 +1,28 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/bklaing2/autofy/lambdas/util/models"
+	"github.com/bklaing2/autofy/lambdas/util/spotify"
+)
 
 func TestSongsToAddUpdateWhenArtistPosts(t *testing.T) {
 	t.Run("flag unset", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			Artists:               []string{"artist 1", "artist 2"},
 			UpdateWhenArtistPosts: false,
 			UpdatedAt:             3,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			Artists:               []string{"artist 1", "artist 2"},
 			UpdateWhenArtistPosts: false,
 		}
 
 		wantedSongsToAdd := []string{}
 
-		songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+		songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToAddIds := []string{}
 		for _, s := range songsToAdd {
@@ -30,20 +35,20 @@ func TestSongsToAddUpdateWhenArtistPosts(t *testing.T) {
 	})
 
 	t.Run("flag set", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			Artists:               []string{"artist 1", "artist 2"},
 			UpdateWhenArtistPosts: true,
 			UpdatedAt:             3,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			Artists:               []string{"artist 1", "artist 2"},
 			UpdateWhenArtistPosts: true,
 		}
 
 		wantedSongsToAdd := []string{"song 4", "song 5", "song 6", "song 7"}
 
-		songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+		songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToAddIds := []string{}
 		for _, s := range songsToAdd {
@@ -57,14 +62,14 @@ func TestSongsToAddUpdateWhenArtistPosts(t *testing.T) {
 }
 
 func TestSongsToAddWhenArtistsAdded(t *testing.T) {
-	playlist := Playlist{}
-	playlistUpdates := Playlist{
+	playlist := models.Playlist{}
+	playlistUpdates := models.Playlist{
 		Artists: []string{"artist 1", "artist 2"},
 	}
 
 	wantedSongsToAdd := []string{"song 1", "song 2", "song 4", "song 5", "song 3", "song 6", "song 7"}
 
-	songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+	songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 	songsToAddIds := []string{}
 	for _, s := range songsToAdd {
@@ -78,18 +83,18 @@ func TestSongsToAddWhenArtistsAdded(t *testing.T) {
 
 func TestSongsToAddWhenUserFollowsArtist(t *testing.T) {
 	t.Run("flag unset", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			UpdateWhenUserFollowsArtist: false,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			FollowedArtists:             []string{"artist 1", "artist 2"},
 			UpdateWhenUserFollowsArtist: false,
 		}
 
 		wantedSongsToAdd := []string{}
 
-		songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+		songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToAddIds := []string{}
 		for _, s := range songsToAdd {
@@ -102,18 +107,18 @@ func TestSongsToAddWhenUserFollowsArtist(t *testing.T) {
 	})
 
 	t.Run("flag set", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			UpdateWhenUserFollowsArtist: true,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			FollowedArtists:             []string{"artist 1", "artist 2"},
 			UpdateWhenUserFollowsArtist: true,
 		}
 
 		wantedSongsToAdd := []string{"song 1", "song 2", "song 4", "song 5", "song 3", "song 6", "song 7"}
 
-		songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+		songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToAddIds := []string{}
 		for _, s := range songsToAdd {
@@ -128,14 +133,14 @@ func TestSongsToAddWhenUserFollowsArtist(t *testing.T) {
 
 func TestSongsToAddWithCollisions(t *testing.T) {
 	t.Run("artist followed is already in playlist - update when artist posts flag unset", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			Artists:                     []string{"artist 1"},
 			UpdateWhenArtistPosts:       false,
 			UpdateWhenUserFollowsArtist: true,
 			UpdatedAt:                   3,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			Artists:                     []string{"artist 1"},
 			FollowedArtists:             []string{"artist 1"},
 			UpdateWhenArtistPosts:       false,
@@ -145,7 +150,7 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 
 		wantedSongsToAdd := []string{}
 
-		songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+		songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToAddIds := []string{}
 		for _, s := range songsToAdd {
@@ -158,14 +163,14 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 	})
 
 	t.Run("artist followed is already in playlist - update when artist posts flag set", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			Artists:                     []string{"artist 1"},
 			UpdateWhenArtistPosts:       true,
 			UpdateWhenUserFollowsArtist: true,
 			UpdatedAt:                   3,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			Artists:                     []string{"artist 1"},
 			FollowedArtists:             []string{"artist 1"},
 			UpdateWhenArtistPosts:       true,
@@ -175,7 +180,7 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 
 		wantedSongsToAdd := []string{"song 4", "song 5"}
 
-		songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+		songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToAddIds := []string{}
 		for _, s := range songsToAdd {
@@ -188,14 +193,14 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 	})
 
 	t.Run("artist added is already in playlist", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			Artists:                     []string{"artist 1"},
 			UpdateWhenArtistPosts:       true,
 			UpdateWhenUserFollowsArtist: true,
 			UpdatedAt:                   3,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			Artists:                     []string{"artist 1"},
 			UpdateWhenArtistPosts:       true,
 			UpdateWhenUserFollowsArtist: true,
@@ -204,7 +209,7 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 
 		wantedSongsToAdd := []string{"song 4", "song 5"}
 
-		songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+		songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToAddIds := []string{}
 		for _, s := range songsToAdd {
@@ -217,13 +222,13 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 	})
 
 	t.Run("artist added is already followed - update when artist posts flag unset", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			FollowedArtists:       []string{"artist 1"},
 			UpdateWhenArtistPosts: false,
 			UpdatedAt:             3,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			Artists:               []string{"artist 1"},
 			UpdateWhenArtistPosts: false,
 			UpdatedAt:             3,
@@ -231,7 +236,7 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 
 		wantedSongsToAdd := []string{}
 
-		songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+		songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToAddIds := []string{}
 		for _, s := range songsToAdd {
@@ -244,13 +249,13 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 	})
 
 	t.Run("artist added is already followed - update when artist posts flag set", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			FollowedArtists:       []string{"artist 1"},
 			UpdateWhenArtistPosts: true,
 			UpdatedAt:             3,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			Artists:               []string{"artist 1"},
 			UpdateWhenArtistPosts: true,
 			UpdatedAt:             3,
@@ -258,7 +263,7 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 
 		wantedSongsToAdd := []string{"song 4", "song 5"}
 
-		songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+		songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToAddIds := []string{}
 		for _, s := range songsToAdd {
@@ -271,13 +276,13 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 	})
 
 	t.Run("artist added is same as artist followed since last update", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			UpdateWhenArtistPosts:       true,
 			UpdateWhenUserFollowsArtist: true,
 			UpdatedAt:                   3,
 		}
 
-		playlistUpdates := Playlist{
+		playlistUpdates := models.Playlist{
 			Artists:                     []string{"artist 1"},
 			FollowedArtists:             []string{"artist 1"},
 			UpdateWhenArtistPosts:       true,
@@ -287,7 +292,7 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 
 		wantedSongsToAdd := []string{"song 1", "song 2", "song 4", "song 5"}
 
-		songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+		songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 		songsToAddIds := []string{}
 		for _, s := range songsToAdd {
@@ -301,14 +306,14 @@ func TestSongsToAddWithCollisions(t *testing.T) {
 }
 
 func TestSongsToAdd(t *testing.T) {
-	playlist := Playlist{
+	playlist := models.Playlist{
 		FollowedArtists:             []string{"artist 1"},
 		UpdateWhenArtistPosts:       true,
 		UpdateWhenUserFollowsArtist: true,
 		UpdatedAt:                   3,
 	}
 
-	playlistUpdates := Playlist{
+	playlistUpdates := models.Playlist{
 		Artists:                     []string{"artist 1", "artist 2"},
 		FollowedArtists:             []string{"artist 3"},
 		UpdateWhenArtistPosts:       true,
@@ -318,7 +323,7 @@ func TestSongsToAdd(t *testing.T) {
 
 	wantedSongsToAdd := []string{"song 4", "song 5", "song 3", "song 6", "song 7", "song 8", "song 9"}
 
-	songsToAdd := fetchSongsToAdd(playlist, playlistUpdates, fetchArtistSongs)
+	songsToAdd := fetchTracksToAdd(playlist, playlistUpdates, fetchArtistSongs)
 
 	songsToAddIds := []string{}
 	for _, s := range songsToAdd {
@@ -330,28 +335,28 @@ func TestSongsToAdd(t *testing.T) {
 	}
 }
 
-func artistSongs() map[string][]Song {
-	artistSongs := make(map[string][]Song)
-	artistSongs["artist 1"] = []Song{
-		{ID: "song 1", Released: 0},
-		{ID: "song 2", Released: 1},
-		{ID: "song 4", Released: 4},
-		{ID: "song 5", Released: 5},
+func artistSongs() map[string][]spotify.Track {
+	artistSongs := make(map[string][]spotify.Track)
+	artistSongs["artist 1"] = []spotify.Track{
+		{ID: "song 1", ReleaseDate: 0},
+		{ID: "song 2", ReleaseDate: 1},
+		{ID: "song 4", ReleaseDate: 4},
+		{ID: "song 5", ReleaseDate: 5},
 	}
-	artistSongs["artist 2"] = []Song{
-		{ID: "song 3", Released: 2},
-		{ID: "song 6", Released: 4},
-		{ID: "song 7", Released: 5},
+	artistSongs["artist 2"] = []spotify.Track{
+		{ID: "song 3", ReleaseDate: 2},
+		{ID: "song 6", ReleaseDate: 4},
+		{ID: "song 7", ReleaseDate: 5},
 	}
-	artistSongs["artist 3"] = []Song{
-		{ID: "song 8", Released: 2},
-		{ID: "song 9", Released: 4},
+	artistSongs["artist 3"] = []spotify.Track{
+		{ID: "song 8", ReleaseDate: 2},
+		{ID: "song 9", ReleaseDate: 4},
 	}
 
 	return artistSongs
 }
 
-func fetchArtistSongs(artist string) []Song {
+func fetchArtistSongs(artist string) []spotify.Track {
 	return artistSongs()[artist]
 }
 

@@ -1,16 +1,20 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/bklaing2/autofy/lambdas/util/models"
+)
 
 func TestUpdateSettings(t *testing.T) {
 	t.Run("artists updated", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			Artists: []string{"artist 1", "artist 2"},
 		}
-		updates := Playlist{
+		updates := models.Playlist{
 			Artists: []string{"artist 2", "artist 3", "artist 4"},
 		}
-		wanted := Playlist{
+		wanted := models.Playlist{
 			Artists: []string{"artist 2", "artist 3", "artist 4"},
 		}
 
@@ -26,13 +30,13 @@ func TestUpdateSettings(t *testing.T) {
 	})
 
 	t.Run("followed artists updated", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			FollowedArtists: []string{"artist 1", "artist 2"},
 		}
-		updates := Playlist{
+		updates := models.Playlist{
 			FollowedArtists: []string{"artist 2", "artist 3", "artist 4"},
 		}
-		wanted := Playlist{
+		wanted := models.Playlist{
 			FollowedArtists: []string{"artist 2", "artist 3", "artist 4"},
 		}
 
@@ -48,13 +52,13 @@ func TestUpdateSettings(t *testing.T) {
 	})
 
 	t.Run("update when artist posts flag updated", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			UpdateWhenArtistPosts: false,
 		}
-		updates := Playlist{
+		updates := models.Playlist{
 			UpdateWhenArtistPosts: true,
 		}
-		wanted := Playlist{
+		wanted := models.Playlist{
 			UpdateWhenArtistPosts: true,
 		}
 
@@ -70,13 +74,13 @@ func TestUpdateSettings(t *testing.T) {
 	})
 
 	t.Run("update when user follows artist flag updated", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			UpdateWhenUserFollowsArtist: false,
 		}
-		updates := Playlist{
+		updates := models.Playlist{
 			UpdateWhenUserFollowsArtist: true,
 		}
-		wanted := Playlist{
+		wanted := models.Playlist{
 			UpdateWhenUserFollowsArtist: true,
 		}
 
@@ -92,13 +96,13 @@ func TestUpdateSettings(t *testing.T) {
 	})
 
 	t.Run("update when user unfollows artist flag updated", func(t *testing.T) {
-		playlist := Playlist{
+		playlist := models.Playlist{
 			UpdateWhenUserUnfollowsArtist: false,
 		}
-		updates := Playlist{
+		updates := models.Playlist{
 			UpdateWhenUserUnfollowsArtist: true,
 		}
-		wanted := Playlist{
+		wanted := models.Playlist{
 			UpdateWhenUserUnfollowsArtist: true,
 		}
 
@@ -115,7 +119,7 @@ func TestUpdateSettings(t *testing.T) {
 }
 
 func TestUpdatePlaylist(t *testing.T) {
-	playlist := Playlist{
+	playlist := models.Playlist{
 		Artists:                       []string{"artist 1"},
 		FollowedArtists:               []string{"artist 2"},
 		UpdateWhenArtistPosts:         true,
@@ -124,7 +128,7 @@ func TestUpdatePlaylist(t *testing.T) {
 		UpdatedAt:                     3,
 	}
 
-	playlistUpdates := Playlist{
+	playlistUpdates := models.Playlist{
 		Artists:                       []string{},
 		FollowedArtists:               []string{"artist 2", "artist 3"},
 		UpdateWhenArtistPosts:         true,
@@ -134,7 +138,7 @@ func TestUpdatePlaylist(t *testing.T) {
 
 	wantedSongsToAdd := []string{"song 6", "song 7", "song 8", "song 9"}
 	wantedSongsToRemove := []string{"song 1", "song 2", "song 4", "song 5"}
-	wantedUpdatedPlaylist := Playlist{
+	wantedUpdatedPlaylist := models.Playlist{
 		Artists:                       []string{},
 		FollowedArtists:               []string{"artist 2", "artist 3"},
 		UpdateWhenArtistPosts:         true,

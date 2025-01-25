@@ -42,10 +42,11 @@ export default $config({
       },
     });
 
-    const updatePlaylistsQueue = new sst.aws.Queue("UpdatePlaylists");
+    const playlistsToUpdateQueue = new sst.aws.Queue("PlaylistsToUpdate");
+    const tracksToUpdateQueue = new sst.aws.Queue("TracksToUpdate");
 
     new sst.aws.SvelteKit("Frontend", {
-      link: [db, updatePlaylistsQueue],
+      link: [db, playlistsToUpdateQueue],
       dev: {
         command: "bun dev"
       }
@@ -54,8 +55,8 @@ export default $config({
 
     const queuePlaylistsFunction = new sst.aws.Function("QueuePlaylists", {
       runtime: "go",
-      handler: "./lambdas/playlist/queue",
-      link: [db, updatePlaylistsQueue],
+      handler: "./lambdas/queue_playlists",
+      link: [db, playlistsToUpdateQueue],
     })
 
     new sst.aws.Cron("QueuePlaylistsCron", {
@@ -65,10 +66,17 @@ export default $config({
 
     const updatePlaylistFunction = new sst.aws.Function("UpdatePlaylist", {
       runtime: "go",
-      handler: "./lambdas/playlist/update",
+      handler: "./lambdas/update_playlist",
+      link: [db, tracksToUpdateQueue],
+    });
+
+    const updateTracksFunction = new sst.aws.Function("UpdateTracks", {
+      runtime: "go",
+      handler: "./lambdas/update_tracks",
       link: [db],
     });
 
-    updatePlaylistsQueue.subscribe(updatePlaylistFunction.arn)
+    playlistsToUpdateQueue.subscribe(updatePlaylistFunction.arn)
+    tracksToUpdateQueue.subscribe(updateTracksFunction.arn)
   }
 });

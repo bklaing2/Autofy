@@ -1,15 +1,15 @@
 import { Resource } from 'sst'
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs'
-import { Playlist } from '$lib/types'
+import { DBPlaylist } from '$lib/types'
 
 const client = new SQSClient({})
-const SQS_QUEUE_URL = Resource.UpdatePlaylists.url
+const SQS_QUEUE_URL = Resource.PlaylistsToUpdate.url
 
-async function updatePlaylist(playlistId: Playlist['id']) {
+async function updatePlaylist(updates: Omit<DBPlaylist, 'updatedAt'>) {
   const command = new SendMessageCommand({
     QueueUrl: SQS_QUEUE_URL,
     DelaySeconds: 10,
-    MessageBody: playlistId
+    MessageBody: JSON.stringify({ updates })
   })
 
   const response = await client.send(command)

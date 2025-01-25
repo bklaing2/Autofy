@@ -1,4 +1,4 @@
-module github.com/bklaing/autofy/lambdas/playlist/queue
+module github.com/bklaing2/autofy/lambdas/playlist/queue
 
 go 1.23.4
 

@@ -1,4 +1,4 @@
-package main
+package set
 
 // Set is a collection of unique elements
 type Set struct {
