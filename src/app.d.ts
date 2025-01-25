@@ -1,21 +1,22 @@
 import 'unplugin-icons/types/svelte'
-import type { SupabaseClient } from "@supabase/supabase-js";
-import SpotifyWebApi from 'spotify-web-api-node'
-import type { Database } from '$lib/types'
+import type { Database } from '$lib/server/db';
+import type { Queue } from '$lib/server/queue';
+import type SpotifyWebApi from 'spotify-web-api-node'
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 declare global {
-	namespace App {
-		// interface Error {}
-		interface Locals {
-			supabase: SupabaseClient<Database>;
-			spotify: SpotifyWebApi;
-			signedIn?: boolean;
-		}
-		// interface PageData {}
-		// interface Platform {}
-	}
+  namespace App {
+    // interface Error {}
+    interface Locals {
+      db: Database;
+      queue: Queue;
+      spotify: SpotifyWebApi;
+      signedIn?: boolean;
+    }
+    // interface PageData {}
+    // interface Platform {}
+  }
 }
 
-export {};
+export { };

@@ -1,29 +1,33 @@
+import type { Actions } from './$types';
+import type { PageServerLoad } from './$types'
 import { error, redirect } from "@sveltejs/kit";
 import Playlist from "$lib/server/playlist.js"
+import { eq } from 'drizzle-orm'
+import { playlistsTable } from "$lib/server/db/schema";
 
-export async function load({ params, locals }) {
-  const { supabase, spotify } = locals
+export const load: PageServerLoad = async ({ params, locals }) => {
+  const { db, spotify } = locals
   const playlistId = params.id
 
-  const { data: supabasePlaylist, error: supabaseError } = await supabase
-    .from('playlists')
-    .select('*')
-    .eq('id', playlistId)
+  const [dbPlaylist] = await db
+    .select()
+    .from(playlistsTable)
+    .where(eq(playlistsTable.id, playlistId))
     .limit(1)
-    .single()
 
-  if (supabaseError) throw new Error (supabaseError.message)
-  if (!supabasePlaylist) throw error(404, { message: 'Playlist not found' })
+  if (!dbPlaylist) throw error(404, { message: 'Playlist not found' })
 
   const { body: spotifyPlaylist } = await spotify.getPlaylist(playlistId)
 
   const json = {
-    ...supabasePlaylist,
+    ...dbPlaylist,
     id: playlistId,
     title: spotifyPlaylist.name,
-    artists: await Playlist.getArtists(supabasePlaylist.artists, spotify),
-    followed_artists: !!supabasePlaylist.followed_artists
+    artists: await Playlist.getArtists(dbPlaylist.artists, spotify),
+    followedArtists: dbPlaylist.followedArtists.length > 0
   }
+  console.log(dbPlaylist.followedArtists)
+  console.log(json.followedArtists)
   return { playlist: json }
 }
 
@@ -33,4 +37,4 @@ export const actions = {
     await fetch(`/playlists/${params.id}`, { method: 'PATCH', body: await request.formData() })
     throw redirect(303, '/playlists')
   }
-}
+} satisfies Actions

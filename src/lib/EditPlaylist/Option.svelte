@@ -1,18 +1,18 @@
 <script lang="ts">
-  export let label: string
-	export let name: string
-  export let value: string
-	export let checked: boolean
-	export let disabled = false
+	export let label: string;
+	export let name: string;
+	export let value: string;
+	export let checked: boolean;
+	export let disabled = false;
 </script>
 
-
-<input {name} id={value} {value} type='checkbox' bind:checked={checked} {disabled} />
+<input {name} id={value} {value} type="checkbox" bind:checked {disabled} />
 <label for={value} class:disabled>{label}</label>
 
-
 <style>
-  input { display: none; }
+	input {
+		display: none;
+	}
 
 	label {
 		grid-column: span 3;
@@ -21,12 +21,12 @@
 		padding-left: 1.6em;
 		padding-right: 1.6em;
 		text-align: center;
-		
+
 		font-size: 0.9rem;
 		background-color: black;
 		border-radius: 10em;
 		position: relative;
-		
+
 		text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
 		box-shadow: 0px 0px 0px 3px rgba(0, 0, 0, 0);
 		-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
@@ -47,11 +47,14 @@
 	label::before {
 		content: '';
 		position: absolute;
-		top: 0; right: 0; bottom: 0; left: 0;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
 		z-index: -1;
 		margin: -2px;
 		border-radius: inherit;
-		background: linear-gradient(155deg, #AB8DF8, #FF00D0);
+		background: linear-gradient(155deg, #ab8df8, #ff00d0);
 	}
 
 	label.disabled::before {
@@ -60,11 +63,11 @@
 	}
 
 	@media only screen and (min-width: 30rem) {
-    label:not(.disabled):hover {
+		label:not(.disabled):hover {
 			background-color: unset;
-			text-shadow: 1px 0px 1px rgba(0, 0, 0, 0.5)
+			text-shadow: 1px 0px 1px rgba(0, 0, 0, 0.5);
 		}
-  }
+	}
 
 	input:checked + label:not(.disabled) {
 		background-color: unset;
@@ -74,3 +77,4 @@
 			inset -1px -1px 3px black;
 	}
 </style>
+

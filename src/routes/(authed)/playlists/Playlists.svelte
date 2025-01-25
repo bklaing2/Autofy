@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import Playlist from "./Playlist.svelte"
-	export let playlists: string[]
+	import Playlist from './Playlist.svelte';
+
+	export let playlists: string[];
 </script>
 
 <svelte:head>
@@ -14,7 +15,9 @@
 
 	{#each playlists as playlist}
 		<Playlist id={playlist} flipped={$page.params.id === playlist}>
-			{#if $page.params.id === playlist} <slot /> {/if}
+			{#if $page.params.id === playlist}
+				<slot />
+			{/if}
 		</Playlist>
 	{/each}
 
@@ -32,8 +35,8 @@
 
 	h1 {
 		width: 100%;
-    font-size: 2rem;
-    text-align: center;
+		font-size: 2rem;
+		text-align: center;
 	}
 
 	.playlist {
@@ -55,3 +58,4 @@
 		align-items: center;
 	}
 </style>
+

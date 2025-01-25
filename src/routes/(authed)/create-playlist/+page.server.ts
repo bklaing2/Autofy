@@ -1,3 +1,4 @@
+import type { Actions } from './$types';
 import { redirect } from '@sveltejs/kit'
 
 
@@ -6,4 +7,4 @@ export const actions = {
     await fetch('/playlists', { method: 'POST', body: await request.formData() })
     throw redirect(303, '/playlists')
   }
-}
+} satisfies Actions

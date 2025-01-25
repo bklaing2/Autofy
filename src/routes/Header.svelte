@@ -1,8 +1,8 @@
 <script lang="ts">
-	export let user: SpotifyApi.CurrentUsersProfileResponse | undefined
-	const userImage = user?.images && user.images.length > 0 ? user.images[0].url : undefined
+	export let user: SpotifyApi.CurrentUsersProfileResponse | undefined;
+	const userImage = user?.images && user.images.length > 0 ? user.images[0].url : undefined;
 
-	const href = user ? "/playlists" : "/"
+	const href = user ? '/playlists' : '/';
 </script>
 
 <header>
@@ -10,8 +10,11 @@
 	<a class="site-title autofy" {href}>autofy</a>
 
 	{#if user}
-		{#if userImage} <img class="profile" src={userImage} alt={`${user.display_name} profile picture`} />
-		{:else} <span class="profile secondary">{user.display_name}</span> {/if}
+		{#if userImage}
+			<img class="profile" src={userImage} alt={`${user.display_name} profile picture`} />
+		{:else}
+			<span class="profile secondary">{user.display_name}</span>
+		{/if}
 
 		<form action="/auth/sign-out" method="post" class="ignore">
 			<button class="sign-out" type="submit">sign out</button>
@@ -34,7 +37,6 @@
 		overflow: scroll;
 	}
 
-
 	img {
 		height: 0.5rem;
 		aspect-ratio: 1 / 1;
@@ -44,14 +46,15 @@
 		font-size: 2rem;
 	}
 
-	.secondary { color: gray; }
+	.secondary {
+		color: gray;
+	}
 
 	img {
 		height: 2rem;
 		aspect-ratio: 1 / 1;
 		border-radius: 50%;
 	}
-
 
 	.sign-out {
 		position: absolute;
@@ -74,9 +77,12 @@
 		position: absolute;
 		top: -0.6rem;
 		right: 1rem;
-    content: '▲';
+		content: '▲';
 		color: gray;
 	}
 
-	.profile:hover + form .sign-out, .sign-out:hover { visibility: unset; }
+	.profile:hover + form .sign-out,
+	.sign-out:hover {
+		visibility: unset;
+	}
 </style>

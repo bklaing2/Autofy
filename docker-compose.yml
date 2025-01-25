@@ -1,0 +1,105 @@
+name: autofy
+
+services:
+  db:
+    image: postgres:17.2-alpine
+    container_name: db
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - ${DATABASE_PORT}:5432
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  queue-playlists:
+    build:
+      context: ./lambdas/queue-playlists
+      dockerfile: Dockerfile.dev
+    environment: 
+      DATABASE_URL: ${DATABASE_URL}
+      AWS_SQS_URL: ${AWS_SQS_URL}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ./lambdas/queue-playlists/:/src
+    working_dir: /src
+    command: go run main.go
+    depends_on:
+      - db
+    profiles:
+      - lambda
+
+  update-playlist-lambda:
+    build:
+      context: ./lambdas/update-playlist
+      dockerfile: Dockerfile
+    ports:
+      - 9000:8080
+    entrypoint: /usr/local/bin/aws-lambda-rie
+    command: ./main
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bun build/index.js
+    ports:
+      - 8080:3000
+    profiles:
+      - prod
+    depends_on:
+      - db
+
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bun --bun run dev
+    volumes:
+      - .:/app
+    ports:
+      - 5173:5173
+    profiles:
+      - dev
+    depends_on:
+      - db
+
+  frontend-preview:
+    build:
+      context: .
+      dockerfile: Dockerfile.preview
+    command: bun --bun run preview
+    volumes:
+      - .:/app
+    ports:
+      - 5173:4173
+    profiles:
+      - preview
+    depends_on:
+      - db
+
+  studio:
+    build:
+      context: .
+      dockerfile: Dockerfile.studio
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_DIRECT_URL: ${DATABASE_URL}
+    command: bunx drizzle-kit studio --host 0.0.0.0
+    volumes:
+      - .:/app
+    ports:
+      - 4983:4983
+    profiles:
+      - studio
+    depends_on:
+      - db
+
+
+volumes:
+  db:
