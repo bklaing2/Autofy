@@ -3,7 +3,7 @@ package spotify
 import (
 	"log"
 
-	"github.com/zmb3/spotify/v2"
+	zmb3spotify "github.com/zmb3/spotify/v2"
 )
 
 func (sp *Spotify) FetchFollowedArtists() []string {
@@ -16,7 +16,7 @@ func (sp *Spotify) FetchFollowedArtists() []string {
 	// Fetch followed artists
 	after := ""
 	for {
-		page, err := client.CurrentUsersFollowedArtists(ctx, spotify.After(after))
+		page, err := client.CurrentUsersFollowedArtists(ctx, zmb3spotify.After(after))
 		if err != nil {
 			log.Printf("Error fetching followed artists: %v", err)
 			return followedArtistsIDs

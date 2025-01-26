@@ -3,15 +3,15 @@ package spotify
 import (
 	"log"
 
-	"github.com/zmb3/spotify/v2"
+	zmb3spotify "github.com/zmb3/spotify/v2"
 )
 
 const LIMIT = 50
 const MARKET = "US"
 
-var OPTIONS = []spotify.RequestOption{
-	spotify.Limit(LIMIT),
-	spotify.Market(MARKET),
+var OPTIONS = []zmb3spotify.RequestOption{
+	zmb3spotify.Limit(LIMIT),
+	zmb3spotify.Market(MARKET),
 }
 
 func (sp *Spotify) FetchArtistTracks(artistID string) []Track {
@@ -19,7 +19,7 @@ func (sp *Spotify) FetchArtistTracks(artistID string) []Track {
 	client := sp.client
 	ctx := sp.ctx
 
-	artistSpotifyID := spotify.ID(artistID)
+	artistSpotifyID := zmb3spotify.ID(artistID)
 	var tracks []Track
 
 	// Fetch albums for the artist

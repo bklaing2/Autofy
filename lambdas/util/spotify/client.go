@@ -3,7 +3,7 @@ package spotify
 import (
 	"context"
 
-	"github.com/zmb3/spotify/v2"
+	zmb3spotify "github.com/zmb3/spotify/v2"
 	"github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
 )
@@ -17,6 +17,6 @@ func CreateClient(ctx context.Context, refreshToken string, accessToken string) 
 
 	return &Spotify{
 		ctx:    ctx,
-		client: spotify.New(client),
+		client: zmb3spotify.New(client),
 	}
 }

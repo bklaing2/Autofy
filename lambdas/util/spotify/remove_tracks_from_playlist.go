@@ -3,7 +3,7 @@ package spotify
 import (
 	"log"
 
-	"github.com/zmb3/spotify/v2"
+	zmb3spotify "github.com/zmb3/spotify/v2"
 )
 
 func (sp *Spotify) RemoveTracksFromPlaylist(playlistID string, trackIDs []string) {
@@ -11,11 +11,11 @@ func (sp *Spotify) RemoveTracksFromPlaylist(playlistID string, trackIDs []string
 	client := sp.client
 	ctx := sp.ctx
 
-	playlistSpotifyID := spotify.ID(playlistID)
-	trackSpotifyIDs := []spotify.ID{}
+	playlistSpotifyID := zmb3spotify.ID(playlistID)
+	trackSpotifyIDs := []zmb3spotify.ID{}
 
 	for _, trackId := range trackIDs {
-		trackSpotifyIDs = append(trackSpotifyIDs, spotify.ID(trackId))
+		trackSpotifyIDs = append(trackSpotifyIDs, zmb3spotify.ID(trackId))
 	}
 
 	// Remove tracks in batches of 100

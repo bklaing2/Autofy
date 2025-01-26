@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/zmb3/spotify/v2"
+	zmb3spotify "github.com/zmb3/spotify/v2"
 )
 
 type Spotify struct {
 	ctx    context.Context
-	client *spotify.Client
+	client *zmb3spotify.Client
 }
 
 type Track struct {
